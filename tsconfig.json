@@ -13,5 +13,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-  ]
+, "app/(tabs)/_layout.jsx", "src/services/storeService.js", "src/services/staffService.js", "src/services/authService.js", "src/config/api.js", "app/_layout.jsx", "app/stores/search.jsx", "app/staff/create.jsx", "app/auth/recovery.jsx", "app/auth/login.jsx", "app/(tabs)/stores.jsx", "app/(tabs)/staff.jsx", "app/(tabs)/profile.jsx", "app/(tabs)/index.jsx"  ]
 }
