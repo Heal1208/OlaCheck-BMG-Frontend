@@ -53,7 +53,7 @@ export default function LoginScreen() {
                     <View style={styles.logoBox}>
                         <Text style={styles.logoLetter}>O</Text>
                     </View>
-                    <Text style={styles.appName}>OlaCheck-BMG</Text>
+                    <Text style={styles.appName}>OlaCheck</Text>
                     <Text style={styles.appSub}>Smart Retail Management</Text>
                 </View>
 
@@ -141,8 +141,8 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#fff" },
     scroll: { padding: 24, paddingBottom: 40 },
     logoWrap: { alignItems: "center", marginTop: 32, marginBottom: 32 },
-    logoBox: { width: 64, height: 64, borderRadius: 16, backgroundColor: PURPLE, alignItems: "center", justifyContent: "center", marginBottom: 12 },
-    logoLetter: { fontSize: 32, fontWeight: "700", color: "#fff" },
+    logoBox: { width: 64, height: 64, borderRadius: 16, backgroundColor: "#C8960C", alignItems: "center", justifyContent: "center", marginBottom: 12 },
+    logoLetter: { fontSize: 32, fontWeight: "700", color: "#000000" },
     appName: { fontSize: 20, fontWeight: "700", color: "#111" },
     appSub: { fontSize: 13, color: "#888", marginTop: 2 },
     title: { fontSize: 28, fontWeight: "800", color: "#111", marginBottom: 6 },
@@ -156,8 +156,8 @@ const styles = StyleSheet.create({
     checkboxActive: { backgroundColor: PURPLE, borderColor: PURPLE },
     checkLabel: { fontSize: 13, color: "#444" },
     forgotText: { fontSize: 13, color: PURPLE, fontWeight: "600" },
-    signInBtn: { backgroundColor: PURPLE, borderRadius: 14, paddingVertical: 18, alignItems: "center", marginBottom: 28 },
-    signInText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+    signInBtn: { backgroundColor: "#C8960C", borderRadius: 14, paddingVertical: 18, alignItems: "center", marginBottom: 28 },
+    signInText: { color: "#000000", fontSize: 16, fontWeight: "700" },
     dividerRow: { flexDirection: "row", alignItems: "center", marginBottom: 20, gap: 8 },
     dividerLine: { flex: 1, height: 1, backgroundColor: "#e8e8e8" },
     dividerText: { fontSize: 13, color: "#999" },
