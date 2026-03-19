@@ -39,10 +39,10 @@ export default function RecoveryScreen() {
 
                 <View style={styles.brandRow}>
                     <View style={styles.logoBox}>
-                        <Ionicons name="shield-checkmark" size={24} color="#fff" />
+                        <Ionicons name="shield-checkmark" size={24} color="#111" />
                     </View>
                     <View>
-                        <Text style={styles.brandName}>OlaCheck-BMG</Text>
+                        <Text style={styles.brandName}>OlaCheck</Text>
                         <Text style={styles.brandSub}>Smart Retail Management</Text>
                     </View>
                 </View>
@@ -67,7 +67,7 @@ export default function RecoveryScreen() {
                         <ActivityIndicator color="#fff" />
                     ) : (
                         <>
-                            <Ionicons name="mail-outline" size={18} color="#fff" />
+                            <Ionicons name="mail-outline" size={18} color="#111" />
                             <Text style={styles.sendText}>Send Recovery Link</Text>
                         </>
                     )}
@@ -98,14 +98,14 @@ const styles = StyleSheet.create({
     backRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 28 },
     backText: { fontSize: 14, color: "#555" },
     brandRow: { flexDirection: "row", alignItems: "center", gap: 14, marginBottom: 32 },
-    logoBox: { width: 52, height: 52, borderRadius: 14, backgroundColor: PURPLE, alignItems: "center", justifyContent: "center" },
+    logoBox: { width: 52, height: 52, borderRadius: 14, backgroundColor: "#C8960C", alignItems: "center", justifyContent: "center" },
     brandName: { fontSize: 17, fontWeight: "700", color: "#111" },
     brandSub: { fontSize: 12, color: "#888", marginTop: 2 },
     title: { fontSize: 28, fontWeight: "800", color: "#111", marginBottom: 10 },
     subtitle: { fontSize: 14, color: "#666", lineHeight: 22, marginBottom: 28 },
     input: { backgroundColor: "#f4f4f4", borderRadius: 12, paddingHorizontal: 16, paddingVertical: 16, fontSize: 15, color: "#111", marginBottom: 16 },
-    sendBtn: { backgroundColor: PURPLE, borderRadius: 14, paddingVertical: 18, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 10, marginBottom: 24 },
-    sendText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+    sendBtn: { backgroundColor: "#C8960C", borderRadius: 14, paddingVertical: 18, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 10, marginBottom: 24 },
+    sendText: { color: "#111", fontSize: 16, fontWeight: "700" },
     processCard: { backgroundColor: "#F0F0FF", borderRadius: 14, padding: 20, marginBottom: 24 },
     processTitle: { fontSize: 15, fontWeight: "700", color: "#111", marginBottom: 12 },
     processStep: { fontSize: 14, color: "#444", lineHeight: 22, marginBottom: 4 },
