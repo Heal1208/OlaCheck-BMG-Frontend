@@ -6,7 +6,7 @@ import { View, ActivityIndicator } from "react-native";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-    const [ready, setReady] = useState(false);
+    const [ready, setReady]           = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
@@ -39,6 +39,9 @@ export default function RootLayout() {
             <Stack.Screen name="stores/create" />
             <Stack.Screen name="stores/edit" />
             <Stack.Screen name="staff/create" />
+            <Stack.Screen name="checkins/checkin" />
+            <Stack.Screen name="checkins/stock-entry" />
+            <Stack.Screen name="checkins/expiry" />
         </Stack>
     );
 }

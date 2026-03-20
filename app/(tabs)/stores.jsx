@@ -15,6 +15,7 @@ const TYPE_COLOR = {
     agency: { bg: "#E3F2FD", text: "#1565C0" },
 };
 const ADMIN_ROLES = ["Sales_Admin", "Sales_Manager", "Director", "Deputy_Director"];
+const SALES_ROLES = ["Sales_Executive", "Sales_Admin", "Sales_Manager", "Director", "Deputy_Director"];
 
 export default function StoresScreen() {
     const [stores, setStores] = useState([]);
@@ -25,7 +26,6 @@ export default function StoresScreen() {
     const [currentUser, setCurrentUser] = useState(null);
 
     useEffect(() => { getUser().then(setCurrentUser); }, []);
-
     useFocusEffect(useCallback(() => { fetchStores(); }, []));
 
     useEffect(() => {
@@ -46,14 +46,12 @@ export default function StoresScreen() {
     };
 
     const isAdmin = currentUser && ADMIN_ROLES.includes(currentUser.role);
+    const isSales = currentUser && SALES_ROLES.includes(currentUser.role);
 
     const renderStore = ({ item }) => {
         const tc = TYPE_COLOR[item.store_type] || { bg: "#f0f0f0", text: "#666" };
         return (
-            <TouchableOpacity
-                style={styles.card}
-                onPress={() => isAdmin && router.push({ pathname: "/stores/edit", params: { store: JSON.stringify(item) } })}
-            >
+            <View style={styles.card}>
                 <View style={styles.iconBox}>
                     <Ionicons name="storefront-outline" size={22} color={PURPLE} />
                 </View>
@@ -73,12 +71,35 @@ export default function StoresScreen() {
                         <Ionicons name="call-outline" size={12} color="#888" />
                         <Text style={styles.infoText}>{item.phone}</Text>
                     </View>
-                    {isAdmin && (
-                        <Text style={styles.tapHint}>Tap to edit</Text>
-                    )}
+
+                    <View style={styles.actionRow}>
+                        {isSales && (
+                            <TouchableOpacity
+                                style={styles.checkinBtn}
+                                onPress={() => router.push({
+                                    pathname: "/checkins/checkin",
+                                    params: { store: JSON.stringify(item) }
+                                })}
+                            >
+                                <Ionicons name="location-outline" size={14} color="#fff" />
+                                <Text style={styles.checkinBtnText}>Check In</Text>
+                            </TouchableOpacity>
+                        )}
+                        {isAdmin && (
+                            <TouchableOpacity
+                                style={styles.editBtn}
+                                onPress={() => router.push({
+                                    pathname: "/stores/edit",
+                                    params: { store: JSON.stringify(item) }
+                                })}
+                            >
+                                <Ionicons name="create-outline" size={14} color={PURPLE} />
+                                <Text style={styles.editBtnText}>Edit</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
                 </View>
-                {isAdmin && <Ionicons name="chevron-forward" size={16} color="#ccc" />}
-            </TouchableOpacity>
+            </View>
         );
     };
 
@@ -124,7 +145,11 @@ export default function StoresScreen() {
                 renderItem={renderStore}
                 contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchStores(); }} colors={[PURPLE]} />
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={() => { setRefreshing(true); fetchStores(); }}
+                        colors={[PURPLE]}
+                    />
                 }
                 ListEmptyComponent={
                     <View style={styles.empty}>
@@ -146,7 +171,7 @@ const styles = StyleSheet.create({
     searchBox: { flexDirection: "row", alignItems: "center", backgroundColor: "#fff", margin: 16, marginBottom: 8, borderRadius: 12, paddingHorizontal: 14, gap: 8 },
     searchInput: { flex: 1, paddingVertical: 13, fontSize: 14, color: "#111" },
     countText: { fontSize: 12, color: "#888", paddingHorizontal: 16, marginBottom: 4 },
-    card: { backgroundColor: "#fff", borderRadius: 16, padding: 14, marginBottom: 10, flexDirection: "row", alignItems: "center", gap: 12 },
+    card: { backgroundColor: "#fff", borderRadius: 16, padding: 14, marginBottom: 10, flexDirection: "row", gap: 12 },
     iconBox: { width: 44, height: 44, borderRadius: 12, backgroundColor: "#F0F0FF", alignItems: "center", justifyContent: "center" },
     cardBody: { flex: 1, gap: 3 },
     cardTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
@@ -156,7 +181,11 @@ const styles = StyleSheet.create({
     ownerName: { fontSize: 12, color: "#666" },
     infoRow: { flexDirection: "row", alignItems: "center", gap: 4 },
     infoText: { fontSize: 12, color: "#888", flex: 1 },
-    tapHint: { fontSize: 11, color: PURPLE, marginTop: 4 },
+    actionRow: { flexDirection: "row", gap: 8, marginTop: 8 },
+    checkinBtn: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: PURPLE, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7 },
+    checkinBtnText: { fontSize: 12, color: "#fff", fontWeight: "600" },
+    editBtn: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "#F0F0FF", borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7 },
+    editBtnText: { fontSize: 12, color: PURPLE, fontWeight: "600" },
     empty: { alignItems: "center", padding: 48, gap: 12 },
     emptyText: { fontSize: 14, color: "#aaa" },
 });
