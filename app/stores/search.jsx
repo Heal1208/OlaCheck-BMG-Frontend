@@ -7,7 +7,7 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { searchStores } from "../../src/services/storeService";
 
-const PURPLE = "#5B4FD9";
+const PURPLE = "#C8960C";
 const TYPES = ["", "grocery", "supermarket", "agency"];
 
 export default function StoreSearchScreen() {

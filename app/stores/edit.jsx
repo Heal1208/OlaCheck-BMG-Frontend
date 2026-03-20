@@ -8,7 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { updateStore, deleteStore } from "../../src/services/storeService";
 import { getStaffList } from "../../src/services/staffService";
 
-const PURPLE = "#5B4FD9";
+const PURPLE = "#C8960C";
 const STORE_TYPES = ["grocery", "supermarket", "agency"];
 
 const showAlert = (title, message, buttons) => {

@@ -178,7 +178,7 @@ export default function CreateStoreScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#f8f8f8" },
-    header: { backgroundColor: PURPLE, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20 },
+    header: { backgroundColor: "#C8960C", flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20 },
     headerTitle: { fontSize: 18, fontWeight: "700", color: "#fff" },
     scroll: { padding: 20, paddingBottom: 40 },
     sectionLabel: { fontSize: 11, fontWeight: "700", color: "#888", letterSpacing: 1, marginBottom: 12, marginTop: 8 },
@@ -187,16 +187,16 @@ const styles = StyleSheet.create({
     input: { backgroundColor: "#fff", borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: "#111" },
     typeRow: { flexDirection: "row", gap: 8 },
     typeBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: "#fff", borderWidth: 1.5, borderColor: "#e0e0e0", alignItems: "center" },
-    typeBtnActive: { backgroundColor: PURPLE, borderColor: PURPLE },
+    typeBtnActive: { backgroundColor: "#C8960C", borderColor: "#C8960C" },
     typeBtnText: { fontSize: 13, color: "#666", textTransform: "capitalize" },
     typeBtnTextActive: { color: "#fff", fontWeight: "600" },
     staffGrid: { gap: 8, marginBottom: 20 },
     staffBtn: { backgroundColor: "#fff", borderRadius: 12, padding: 14, borderWidth: 1.5, borderColor: "#e0e0e0" },
-    staffBtnActive: { backgroundColor: PURPLE, borderColor: PURPLE },
+    staffBtnActive: { backgroundColor: "#C8960C", borderColor: "#C8960C" },
     staffBtnText: { fontSize: 14, fontWeight: "600", color: "#111" },
     staffBtnTextActive: { color: "#fff" },
     staffBtnRole: { fontSize: 12, color: "#888", marginTop: 2 },
     noStaff: { fontSize: 13, color: "#aaa", textAlign: "center", padding: 16 },
-    createBtn: { backgroundColor: PURPLE, borderRadius: 14, paddingVertical: 17, alignItems: "center", marginTop: 8 },
+    createBtn: { backgroundColor: "#C8960C", borderRadius: 14, paddingVertical: 17, alignItems: "center", marginTop: 8 },
     createBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
 });
