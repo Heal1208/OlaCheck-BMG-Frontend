@@ -7,7 +7,7 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { createStaff, getRoles } from "../../src/services/staffService";
 
-const PURPLE = "#5B4FD9";
+const GOLD = "#C8960C";
 
 const showAlert = (title, message, buttons) => {
     if (Platform.OS === "web") {
@@ -141,7 +141,7 @@ export default function CreateStaffScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#f8f8f8" },
-    header: { backgroundColor: "#C8960C", flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20 },
+    header: { backgroundColor: GOLD, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20 },
     headerTitle: { fontSize: 18, fontWeight: "700", color: "#fff" },
     scroll: { padding: 20, paddingBottom: 40 },
     field: { marginBottom: 18 },
@@ -151,9 +151,9 @@ const styles = StyleSheet.create({
     pwInput: { flex: 1, paddingVertical: 14, fontSize: 15, color: "#111" },
     roleGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
     roleBtn: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, backgroundColor: "#fff", borderWidth: 1.5, borderColor: "#e0e0e0" },
-    roleBtnActive: { backgroundColor: "#C8960C", borderColor: "#C8960C" },
+    roleBtnActive: { backgroundColor: GOLD, borderColor: GOLD },
     roleBtnText: { fontSize: 13, color: "#666" },
     roleBtnTextActive: { color: "#fff", fontWeight: "600" },
-    createBtn: { backgroundColor: "#C8960C", borderRadius: 14, paddingVertical: 17, alignItems: "center", marginTop: 8 },
+    createBtn: { backgroundColor: GOLD, borderRadius: 14, paddingVertical: 17, alignItems: "center", marginTop: 8 },
     createBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
 });

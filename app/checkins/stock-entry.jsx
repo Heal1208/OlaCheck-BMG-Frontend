@@ -9,7 +9,7 @@ import {
     getProducts, createStockEntries, completeCheckin,
 } from "../../src/services/checkinService";
 
-const PURPLE = "#5B4FD9";
+const GOLD = "#C8960C";
 
 const showAlert = (title, message, buttons) => {
     if (Platform.OS === "web") {
@@ -124,7 +124,7 @@ export default function StockEntryScreen() {
         );
     };
 
-    if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={PURPLE} /></View>;
+    if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={GOLD} /></View>;
 
     return (
         <View style={styles.container}>
@@ -187,7 +187,7 @@ export default function StockEntryScreen() {
                                             if (cur > 0) setQty(item.product_id, String(cur - 1));
                                         }}
                                     >
-                                        <Ionicons name="remove" size={18} color={PURPLE} />
+                                        <Ionicons name="remove" size={18} color={GOLD} />
                                     </TouchableOpacity>
                                     <TextInput
                                         style={[styles.qtyInput, isLow && styles.qtyInputLow]}
@@ -204,7 +204,7 @@ export default function StockEntryScreen() {
                                             setQty(item.product_id, String(cur + 1));
                                         }}
                                     >
-                                        <Ionicons name="add" size={18} color={PURPLE} />
+                                        <Ionicons name="add" size={18} color={GOLD} />
                                     </TouchableOpacity>
                                 </View>
                                 {isLow && (
@@ -244,7 +244,7 @@ export default function StockEntryScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#f8f8f8" },
     center: { flex: 1, alignItems: "center", justifyContent: "center" },
-    header: { backgroundColor: PURPLE, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20 },
+    header: { backgroundColor: GOLD, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20 },
     headerCenter: { alignItems: "center" },
     headerTitle: { fontSize: 18, fontWeight: "700", color: "#fff" },
     headerSub: { fontSize: 12, color: "#ffffff99", marginTop: 2 },
@@ -255,8 +255,8 @@ const styles = StyleSheet.create({
     stepLine: { flex: 1, height: 2, backgroundColor: "#e0e0e0", marginHorizontal: 8 },
     stepNum: { width: 24, height: 24, borderRadius: 12, backgroundColor: "#e0e0e0", textAlign: "center", lineHeight: 24, fontSize: 12, color: "#999", fontWeight: "700" },
     stepText: { fontSize: 10, color: "#999" },
-    stepTextDone: { fontSize: 10, color: PURPLE, fontWeight: "600" },
-    stepTextActive: { fontSize: 10, color: PURPLE, fontWeight: "700" },
+    stepTextDone: { fontSize: 10, color: GOLD, fontWeight: "600" },
+    stepTextActive: { fontSize: 10, color: GOLD, fontWeight: "700" },
     productCard: { backgroundColor: "#fff", borderRadius: 14, padding: 14, marginBottom: 10, flexDirection: "row", alignItems: "center", gap: 12 },
     productCardLow: { borderWidth: 1.5, borderColor: "#FF8A65" },
     productInfo: { flex: 1 },
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     productSku: { fontSize: 12, color: "#888", marginTop: 2 },
     threshold: { fontSize: 11, color: "#aaa", marginTop: 2 },
     qtyWrap: { flexDirection: "row", alignItems: "center", gap: 8 },
-    qtyBtn: { width: 32, height: 32, borderRadius: 8, backgroundColor: "#F0F0FF", alignItems: "center", justifyContent: "center" },
+    qtyBtn: { width: 32, height: 32, borderRadius: 8, backgroundColor: "#FFF8E8", alignItems: "center", justifyContent: "center" },
     qtyInput: { width: 52, height: 40, backgroundColor: "#f4f4f4", borderRadius: 8, textAlign: "center", fontSize: 16, fontWeight: "700", color: "#111" },
     qtyInputLow: { backgroundColor: "#FFF3E0", color: "#E65100" },
     lowBadge: { position: "absolute", top: 8, right: 8, flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: "#FFF3E0", borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
@@ -275,6 +275,6 @@ const styles = StyleSheet.create({
     footer: { position: "absolute", bottom: 0, left: 0, right: 0, flexDirection: "row", gap: 12, padding: 16, backgroundColor: "#fff", borderTopWidth: 1, borderTopColor: "#f0f0f0" },
     skipBtn: { flex: 1, borderWidth: 1.5, borderColor: "#e0e0e0", borderRadius: 12, paddingVertical: 15, alignItems: "center" },
     skipBtnText: { fontSize: 14, color: "#666", fontWeight: "600" },
-    saveBtn: { flex: 2, backgroundColor: PURPLE, borderRadius: 12, paddingVertical: 15, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
+    saveBtn: { flex: 2, backgroundColor: GOLD, borderRadius: 12, paddingVertical: 15, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
     saveBtnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
 });

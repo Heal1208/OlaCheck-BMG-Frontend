@@ -7,7 +7,7 @@ import { useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { getAlerts, resolveAlert } from "../../src/services/checkinService";
 
-const PURPLE = "#5B4FD9";
+const GOLD = "#C8960C";
 
 const showAlert = (title, message, buttons) => {
     if (Platform.OS === "web") {
@@ -142,7 +142,7 @@ export default function AlertsScreen() {
             </View>
 
             {loading
-                ? <View style={styles.center}><ActivityIndicator size="large" color={PURPLE} /></View>
+                ? <View style={styles.center}><ActivityIndicator size="large" color={GOLD} /></View>
                 : (
                     <FlatList
                         data={alerts}
@@ -153,7 +153,7 @@ export default function AlertsScreen() {
                             <RefreshControl
                                 refreshing={refreshing}
                                 onRefresh={() => { setRefreshing(true); fetchAlerts(); }}
-                                colors={[PURPLE]}
+                                colors={[GOLD]}
                             />
                         }
                         ListEmptyComponent={
@@ -174,13 +174,13 @@ export default function AlertsScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#f8f8f8" },
     center: { flex: 1, alignItems: "center", justifyContent: "center" },
-    header: { backgroundColor: PURPLE, flexDirection: "row", alignItems: "center", gap: 10, paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20 },
+    header: { backgroundColor: GOLD, flexDirection: "row", alignItems: "center", gap: 10, paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20 },
     headerTitle: { fontSize: 20, fontWeight: "800", color: "#fff" },
     countBadge: { backgroundColor: "#E53935", borderRadius: 12, paddingHorizontal: 8, paddingVertical: 3 },
     countBadgeText: { fontSize: 12, color: "#fff", fontWeight: "700" },
     filterRow: { flexDirection: "row", backgroundColor: "#fff", padding: 12, gap: 10, borderBottomWidth: 1, borderBottomColor: "#f0f0f0" },
     filterBtn: { flex: 1, paddingVertical: 8, borderRadius: 20, backgroundColor: "#f4f4f4", alignItems: "center" },
-    filterBtnActive: { backgroundColor: PURPLE },
+    filterBtnActive: { backgroundColor: GOLD },
     filterBtnText: { fontSize: 13, color: "#666", fontWeight: "600" },
     filterBtnTextActive: { color: "#fff" },
     card: { backgroundColor: "#fff", borderRadius: 16, padding: 14, marginBottom: 10, flexDirection: "row", gap: 12 },

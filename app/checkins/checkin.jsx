@@ -7,7 +7,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { createCheckin } from "../../src/services/checkinService";
 
-const PURPLE = "#5B4FD9";
+const GOLD = "#C8960C";
 
 const showAlert = (title, message, buttons) => {
     if (Platform.OS === "web") {
@@ -33,49 +33,18 @@ export default function CheckinScreen() {
 
     const [loading, setLoading] = useState(false);
     const [note, setNote] = useState("");
-    const [gpsLat, setGpsLat] = useState("");
-    const [gpsLng, setGpsLng] = useState("");
-    const [locating, setLocating] = useState(false);
-
-    const getLocation = () => {
-        setLocating(true);
-        if (typeof navigator !== "undefined" && navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    setGpsLat(String(pos.coords.latitude));
-                    setGpsLng(String(pos.coords.longitude));
-                    setLocating(false);
-                },
-                () => {
-                    showAlert("Error", "Could not get location. Please enter coordinates manually.");
-                    setLocating(false);
-                },
-                { enableHighAccuracy: true, timeout: 10000 }
-            );
-        } else {
-            showAlert("Error", "Geolocation is not supported. Please enter coordinates manually.");
-            setLocating(false);
-        }
-    };
 
     const handleCheckin = async () => {
-        if (!gpsLat || !gpsLng) {
-            showAlert("Error", "Please get your GPS location first."); return;
-        }
         setLoading(true);
         try {
             const result = await createCheckin({
                 store_id: storeData.store_id,
-                gps_lat: parseFloat(gpsLat),
-                gps_lng: parseFloat(gpsLng),
                 note: note || null,
             });
             if (result.success) {
                 showAlert(
-                    result.data.gps_verified ? "Check-in Successful ✓" : "Check-in Recorded ⚠",
-                    result.data.gps_verified
-                        ? `You have checked in at ${storeData.store_name}.`
-                        : `Checked in but GPS location does not match store location.`,
+                    "Check-in Successful ✓",
+                    `You have checked in at ${storeData.store_name}.`,
                     [{
                         text: "Start Stock Entry",
                         onPress: () => router.replace({
@@ -108,7 +77,7 @@ export default function CheckinScreen() {
             <ScrollView contentContainerStyle={styles.scroll}>
                 <View style={styles.storeCard}>
                     <View style={styles.storeIcon}>
-                        <Ionicons name="storefront-outline" size={28} color={PURPLE} />
+                        <Ionicons name="storefront-outline" size={28} color={GOLD} />
                     </View>
                     <View style={styles.storeInfo}>
                         <Text style={styles.storeName}>{storeData?.store_name}</Text>
@@ -118,51 +87,11 @@ export default function CheckinScreen() {
                     </View>
                 </View>
 
-                <Text style={styles.sectionLabel}>GPS LOCATION</Text>
-                <View style={styles.gpsCard}>
-                    <TouchableOpacity
-                        style={[styles.gpsBtn, locating && { opacity: 0.7 }]}
-                        onPress={getLocation}
-                        disabled={locating}
-                    >
-                        {locating
-                            ? <ActivityIndicator color="#fff" />
-                            : <>
-                                <Ionicons name="navigate-outline" size={20} color="#fff" />
-                                <Text style={styles.gpsBtnText}>Get My Location</Text>
-                            </>
-                        }
-                    </TouchableOpacity>
-
-                    {gpsLat && gpsLng ? (
-                        <View style={styles.coordBox}>
-                            <Ionicons name="checkmark-circle" size={18} color="#27AE60" />
-                            <Text style={styles.coordText}>
-                                {parseFloat(gpsLat).toFixed(6)}, {parseFloat(gpsLng).toFixed(6)}
-                            </Text>
-                        </View>
-                    ) : (
-                        <Text style={styles.gpsHint}>Or enter coordinates manually below</Text>
-                    )}
-
-                    <View style={styles.manualRow}>
-                        <TextInput
-                            style={[styles.coordInput, { flex: 1 }]}
-                            placeholder="Latitude"
-                            placeholderTextColor="#aaa"
-                            value={gpsLat}
-                            onChangeText={setGpsLat}
-                            keyboardType="decimal-pad"
-                        />
-                        <TextInput
-                            style={[styles.coordInput, { flex: 1 }]}
-                            placeholder="Longitude"
-                            placeholderTextColor="#aaa"
-                            value={gpsLng}
-                            onChangeText={setGpsLng}
-                            keyboardType="decimal-pad"
-                        />
-                    </View>
+                <View style={styles.infoCard}>
+                    <Ionicons name="information-circle-outline" size={20} color={GOLD} />
+                    <Text style={styles.infoText}>
+                        Bấm Check In để bắt đầu ghi nhận chuyến thăm cửa hàng này.
+                    </Text>
                 </View>
 
                 <Text style={styles.sectionLabel}>NOTE (OPTIONAL)</Text>
@@ -184,7 +113,7 @@ export default function CheckinScreen() {
                     {loading
                         ? <ActivityIndicator color="#fff" />
                         : <>
-                            <Ionicons name="location-outline" size={20} color="#fff" />
+                            <Ionicons name="checkmark-circle-outline" size={22} color="#fff" />
                             <Text style={styles.checkinBtnText}>Check In Now</Text>
                         </>
                     }
@@ -196,24 +125,18 @@ export default function CheckinScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#f8f8f8" },
-    header: { backgroundColor: PURPLE, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20 },
+    header: { backgroundColor: GOLD, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20 },
     headerTitle: { fontSize: 18, fontWeight: "700", color: "#fff" },
     scroll: { padding: 20, paddingBottom: 40 },
-    storeCard: { backgroundColor: "#fff", borderRadius: 16, padding: 16, flexDirection: "row", alignItems: "center", gap: 14, marginBottom: 24 },
-    storeIcon: { width: 52, height: 52, borderRadius: 14, backgroundColor: "#F0F0FF", alignItems: "center", justifyContent: "center" },
+    storeCard: { backgroundColor: "#fff", borderRadius: 16, padding: 16, flexDirection: "row", alignItems: "center", gap: 14, marginBottom: 20 },
+    storeIcon: { width: 56, height: 56, borderRadius: 16, backgroundColor: "#FFF8E8", alignItems: "center", justifyContent: "center" },
     storeInfo: { flex: 1 },
-    storeName: { fontSize: 16, fontWeight: "700", color: "#111" },
-    storeAddr: { fontSize: 12, color: "#888", marginTop: 3 },
+    storeName: { fontSize: 17, fontWeight: "700", color: "#111" },
+    storeAddr: { fontSize: 12, color: "#888", marginTop: 4 },
+    infoCard: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: "#FFF8E8", borderRadius: 12, padding: 14, marginBottom: 24 },
+    infoText: { flex: 1, fontSize: 13, color: "#444", lineHeight: 19 },
     sectionLabel: { fontSize: 11, fontWeight: "700", color: "#888", letterSpacing: 1, marginBottom: 10 },
-    gpsCard: { backgroundColor: "#fff", borderRadius: 16, padding: 16, marginBottom: 20, gap: 12 },
-    gpsBtn: { backgroundColor: PURPLE, borderRadius: 12, paddingVertical: 14, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
-    gpsBtnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
-    coordBox: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "#E8F5E9", borderRadius: 10, padding: 10 },
-    coordText: { fontSize: 13, color: "#2E7D32", fontWeight: "600" },
-    gpsHint: { fontSize: 12, color: "#aaa", textAlign: "center" },
-    manualRow: { flexDirection: "row", gap: 10 },
-    coordInput: { backgroundColor: "#f4f4f4", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 12, fontSize: 14, color: "#111" },
-    noteInput: { backgroundColor: "#fff", borderRadius: 14, padding: 16, fontSize: 14, color: "#111", minHeight: 90, textAlignVertical: "top", marginBottom: 24 },
-    checkinBtn: { backgroundColor: PURPLE, borderRadius: 14, paddingVertical: 18, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
-    checkinBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+    noteInput: { backgroundColor: "#fff", borderRadius: 14, padding: 16, fontSize: 14, color: "#111", minHeight: 90, textAlignVertical: "top", marginBottom: 32 },
+    checkinBtn: { backgroundColor: GOLD, borderRadius: 14, paddingVertical: 18, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
+    checkinBtnText: { color: "#fff", fontSize: 17, fontWeight: "700" },
 });

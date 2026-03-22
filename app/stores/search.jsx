@@ -7,7 +7,7 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { searchStores } from "../../src/services/storeService";
 
-const PURPLE = "#C8960C";
+const GOLD = "#C8960C";
 const TYPES = ["", "grocery", "supermarket", "agency"];
 
 export default function StoreSearchScreen() {
@@ -84,7 +84,7 @@ export default function StoreSearchScreen() {
                     <Text style={styles.searchBtnText}>Search</Text>
                 </TouchableOpacity>
 
-                {loading && <ActivityIndicator size="large" color={PURPLE} style={{ marginTop: 32 }} />}
+                {loading && <ActivityIndicator size="large" color={GOLD} style={{ marginTop: 32 }} />}
 
                 {!loading && searched && (
                     <Text style={styles.resultCount}>{results.length} result{results.length !== 1 ? "s" : ""} found</Text>
@@ -93,7 +93,7 @@ export default function StoreSearchScreen() {
                 {!loading && results.map((item) => (
                     <View key={item.store_id} style={styles.card}>
                         <View style={styles.iconBox}>
-                            <Ionicons name="storefront-outline" size={20} color={PURPLE} />
+                            <Ionicons name="storefront-outline" size={20} color={GOLD} />
                         </View>
                         <View style={styles.info}>
                             <Text style={styles.name} numberOfLines={1}>{item.store_name}</Text>
@@ -119,29 +119,29 @@ export default function StoreSearchScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#f8f8f8" },
-    header: { backgroundColor: PURPLE, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20 },
+    header: { backgroundColor: GOLD, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20 },
     headerTitle: { fontSize: 18, fontWeight: "700", color: "#fff" },
     scroll: { padding: 16 },
-    searchRow: { flexDirection: "row", alignItems: "center", backgroundColor: "#fff", borderRadius: 12, paddingHorizontal: 12, marginBottom: 12, borderWidth: 1.5, borderColor: PURPLE, gap: 8 },
+    searchRow: { flexDirection: "row", alignItems: "center", backgroundColor: "#fff", borderRadius: 12, paddingHorizontal: 12, marginBottom: 12, borderWidth: 1.5, borderColor: GOLD, gap: 8 },
     searchInput: { flex: 1, paddingVertical: 14, fontSize: 15, color: "#111" },
     row: { flexDirection: "row", gap: 10, marginBottom: 12 },
     input: { backgroundColor: "#fff", borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, fontSize: 14, color: "#111" },
     typeRow: { flexDirection: "row", gap: 8, marginBottom: 14 },
     typeBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: "#fff", borderWidth: 1, borderColor: "#e0e0e0" },
-    typeBtnActive: { backgroundColor: PURPLE, borderColor: PURPLE },
+    typeBtnActive: { backgroundColor: GOLD, borderColor: GOLD },
     typeBtnText: { fontSize: 13, color: "#666", textTransform: "capitalize" },
     typeBtnTextActive: { color: "#fff", fontWeight: "600" },
-    searchBtn: { backgroundColor: PURPLE, borderRadius: 12, paddingVertical: 15, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 16 },
+    searchBtn: { backgroundColor: GOLD, borderRadius: 12, paddingVertical: 15, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 16 },
     searchBtnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
     resultCount: { fontSize: 13, color: "#888", marginBottom: 12 },
     card: { backgroundColor: "#fff", borderRadius: 14, padding: 14, marginBottom: 10, flexDirection: "row", alignItems: "center", gap: 12 },
-    iconBox: { width: 42, height: 42, borderRadius: 12, backgroundColor: "#F0F0FF", alignItems: "center", justifyContent: "center" },
+    iconBox: { width: 42, height: 42, borderRadius: 12, backgroundColor: "#FFF8E8", alignItems: "center", justifyContent: "center" },
     info: { flex: 1, gap: 2 },
     name: { fontSize: 14, fontWeight: "700", color: "#111" },
     sub: { fontSize: 12, color: "#666" },
     addr: { fontSize: 12, color: "#888" },
-    badge: { backgroundColor: "#F0F0FF", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
-    badgeText: { fontSize: 11, color: PURPLE, fontWeight: "600", textTransform: "capitalize" },
+    badge: { backgroundColor: "#FFF8E8", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
+    badgeText: { fontSize: 11, color: GOLD, fontWeight: "600", textTransform: "capitalize" },
     empty: { alignItems: "center", padding: 40, gap: 10 },
     emptyText: { fontSize: 14, color: "#aaa" },
 });

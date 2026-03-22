@@ -8,7 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { updateStore, deleteStore } from "../../src/services/storeService";
 import { getStaffList } from "../../src/services/staffService";
 
-const PURPLE = "#C8960C";
+const GOLD = "#C8960C";
 const STORE_TYPES = ["grocery", "supermarket", "agency"];
 
 const showAlert = (title, message, buttons) => {
@@ -41,8 +41,6 @@ export default function EditStoreScreen() {
         address: storeData?.address || "",
         district: storeData?.district || "",
         city: storeData?.city || "",
-        latitude: String(storeData?.latitude || ""),
-        longitude: String(storeData?.longitude || ""),
         assigned_staff_id: storeData?.assigned_staff_id || null,
     });
     const [staffList, setStaffList] = useState([]);
@@ -59,12 +57,7 @@ export default function EditStoreScreen() {
     const handleUpdate = async () => {
         setLoading(true);
         try {
-            const payload = {
-                ...form,
-                latitude: parseFloat(form.latitude),
-                longitude: parseFloat(form.longitude),
-            };
-            const r = await updateStore(storeData.store_id, payload);
+            const r = await updateStore(storeData.store_id, form);
             if (r.success) {
                 showAlert("Success", "Store updated successfully.", [
                     { text: "OK", onPress: () => router.back() }
@@ -166,31 +159,6 @@ export default function EditStoreScreen() {
                         </View>
                     ))}
 
-                    <View style={styles.row}>
-                        <View style={[styles.field, { flex: 1 }]}>
-                            <Text style={styles.label}>Latitude</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="21.0000"
-                                placeholderTextColor="#aaa"
-                                value={form.latitude}
-                                onChangeText={(v) => set("latitude", v)}
-                                keyboardType="decimal-pad"
-                            />
-                        </View>
-                        <View style={[styles.field, { flex: 1 }]}>
-                            <Text style={styles.label}>Longitude</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="105.0000"
-                                placeholderTextColor="#aaa"
-                                value={form.longitude}
-                                onChangeText={(v) => set("longitude", v)}
-                                keyboardType="decimal-pad"
-                            />
-                        </View>
-                    </View>
-
                     <Text style={styles.sectionLabel}>ASSIGNED STAFF</Text>
                     <View style={styles.staffGrid}>
                         {staffList
@@ -226,25 +194,24 @@ export default function EditStoreScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#f8f8f8" },
-    header: { backgroundColor: PURPLE, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20 },
+    header: { backgroundColor: GOLD, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20 },
     headerTitle: { fontSize: 18, fontWeight: "700", color: "#fff" },
     scroll: { padding: 20, paddingBottom: 40 },
     sectionLabel: { fontSize: 11, fontWeight: "700", color: "#888", letterSpacing: 1, marginBottom: 12, marginTop: 8 },
     field: { marginBottom: 14 },
     label: { fontSize: 13, fontWeight: "600", color: "#555", marginBottom: 6 },
     input: { backgroundColor: "#fff", borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: "#111" },
-    row: { flexDirection: "row", gap: 12 },
     typeRow: { flexDirection: "row", gap: 8 },
     typeBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: "#fff", borderWidth: 1.5, borderColor: "#e0e0e0", alignItems: "center" },
-    typeBtnActive: { backgroundColor: PURPLE, borderColor: PURPLE },
+    typeBtnActive: { backgroundColor: GOLD, borderColor: GOLD },
     typeBtnText: { fontSize: 13, color: "#666", textTransform: "capitalize" },
     typeBtnTextActive: { color: "#fff", fontWeight: "600" },
     staffGrid: { gap: 8, marginBottom: 20 },
     staffBtn: { backgroundColor: "#fff", borderRadius: 12, padding: 14, borderWidth: 1.5, borderColor: "#e0e0e0" },
-    staffBtnActive: { backgroundColor: PURPLE, borderColor: PURPLE },
+    staffBtnActive: { backgroundColor: GOLD, borderColor: GOLD },
     staffBtnText: { fontSize: 14, fontWeight: "600", color: "#111" },
     staffBtnTextActive: { color: "#fff" },
     staffBtnRole: { fontSize: 12, color: "#888", marginTop: 2 },
-    saveBtn: { backgroundColor: PURPLE, borderRadius: 14, paddingVertical: 17, alignItems: "center", marginTop: 8 },
+    saveBtn: { backgroundColor: GOLD, borderRadius: 14, paddingVertical: 17, alignItems: "center", marginTop: 8 },
     saveBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
 });

@@ -9,7 +9,7 @@ import {
     getStockEntries, createExpiryRecord, completeCheckin,
 } from "../../src/services/checkinService";
 
-const PURPLE = "#5B4FD9";
+const GOLD = "#C8960C";
 
 const showAlert = (title, message, buttons) => {
     if (Platform.OS === "web") {
@@ -107,7 +107,7 @@ export default function ExpiryScreen() {
         } finally { setSaving(false); }
     };
 
-    if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={PURPLE} /></View>;
+    if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={GOLD} /></View>;
 
     return (
         <View style={styles.container}>
@@ -124,15 +124,15 @@ export default function ExpiryScreen() {
 
             <View style={styles.progressBar}>
                 <View style={styles.step}>
-                    <Ionicons name="checkmark-circle" size={20} color={PURPLE} />
+                    <Ionicons name="checkmark-circle" size={20} color={GOLD} />
                     <Text style={styles.stepTextDone}>Check-in</Text>
                 </View>
-                <View style={[styles.stepLine, { backgroundColor: PURPLE }]} />
+                <View style={[styles.stepLine, { backgroundColor: GOLD }]} />
                 <View style={styles.step}>
-                    <Ionicons name="checkmark-circle" size={20} color={PURPLE} />
+                    <Ionicons name="checkmark-circle" size={20} color={GOLD} />
                     <Text style={styles.stepTextDone}>Stock</Text>
                 </View>
-                <View style={[styles.stepLine, { backgroundColor: PURPLE }]} />
+                <View style={[styles.stepLine, { backgroundColor: GOLD }]} />
                 <View style={styles.step}>
                     <View style={styles.stepCircleActive}>
                         <Text style={styles.stepCircleText}>3</Text>
@@ -154,7 +154,7 @@ export default function ExpiryScreen() {
                         >
                             <View style={styles.entryLeft}>
                                 <View style={styles.entryIcon}>
-                                    <Ionicons name="cube-outline" size={18} color={PURPLE} />
+                                    <Ionicons name="cube-outline" size={18} color={GOLD} />
                                 </View>
                                 <View>
                                     <Text style={styles.entryName}>{entry.product_name}</Text>
@@ -257,22 +257,22 @@ export default function ExpiryScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#f8f8f8" },
     center: { flex: 1, alignItems: "center", justifyContent: "center" },
-    header: { backgroundColor: PURPLE, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20 },
+    header: { backgroundColor: GOLD, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20 },
     headerCenter: { alignItems: "center" },
     headerTitle: { fontSize: 18, fontWeight: "700", color: "#fff" },
     headerSub: { fontSize: 12, color: "#ffffff99", marginTop: 2 },
     progressBar: { flexDirection: "row", alignItems: "center", backgroundColor: "#fff", paddingHorizontal: 24, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: "#f0f0f0" },
     step: { alignItems: "center", gap: 2 },
     stepLine: { flex: 1, height: 2, backgroundColor: "#e0e0e0", marginHorizontal: 8 },
-    stepTextDone: { fontSize: 10, color: PURPLE, fontWeight: "600" },
-    stepTextActive: { fontSize: 10, color: PURPLE, fontWeight: "700" },
-    stepCircleActive: { width: 24, height: 24, borderRadius: 12, backgroundColor: PURPLE, alignItems: "center", justifyContent: "center" },
+    stepTextDone: { fontSize: 10, color: GOLD, fontWeight: "600" },
+    stepTextActive: { fontSize: 10, color: GOLD, fontWeight: "700" },
+    stepCircleActive: { width: 24, height: 24, borderRadius: 12, backgroundColor: GOLD, alignItems: "center", justifyContent: "center" },
     stepCircleText: { fontSize: 12, color: "#fff", fontWeight: "700" },
     hint: { fontSize: 12, color: "#888", paddingHorizontal: 16, paddingVertical: 10, backgroundColor: "#fff", borderBottomWidth: 1, borderBottomColor: "#f0f0f0" },
     entryCard: { backgroundColor: "#fff", borderRadius: 14, marginBottom: 10, overflow: "hidden" },
     entryHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 14 },
     entryLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
-    entryIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: "#F0F0FF", alignItems: "center", justifyContent: "center" },
+    entryIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: "#FFF8E8", alignItems: "center", justifyContent: "center" },
     entryName: { fontSize: 14, fontWeight: "700", color: "#111" },
     entrySku: { fontSize: 12, color: "#888", marginTop: 2 },
     expiryForm: { padding: 14, paddingTop: 0, gap: 12, borderTopWidth: 1, borderTopColor: "#f0f0f0" },
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     formLabel: { fontSize: 12, fontWeight: "600", color: "#555" },
     formInput: { backgroundColor: "#f4f4f4", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: "#111" },
     dateRow: { flexDirection: "row", gap: 10 },
-    saveExpiryBtn: { backgroundColor: PURPLE, borderRadius: 10, paddingVertical: 13, alignItems: "center" },
+    saveExpiryBtn: { backgroundColor: GOLD, borderRadius: 10, paddingVertical: 13, alignItems: "center" },
     saveExpiryBtnText: { color: "#fff", fontSize: 14, fontWeight: "700" },
     empty: { alignItems: "center", padding: 48, gap: 12 },
     emptyText: { fontSize: 14, color: "#aaa" },

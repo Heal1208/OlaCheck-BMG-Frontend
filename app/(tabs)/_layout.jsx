@@ -3,25 +3,25 @@ import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { getUser } from "../../src/services/authService";
 
-const PURPLE = "#5B4FD9";
+const GOLD = "#C8960C";
 
 const TABS_BY_ROLE = {
-    Director:          ["index", "stores", "alerts", "staff", "profile"],
-    Deputy_Director:   ["index", "stores", "alerts", "staff", "profile"],
-    Sales_Manager:     ["index", "stores", "alerts", "staff", "profile"],
-    Sales_Admin:       ["index", "stores", "alerts", "staff", "profile"],
-    Sales_Executive:   ["index", "stores", "profile"],
+    Director: ["index", "stores", "alerts", "staff", "profile"],
+    Deputy_Director: ["index", "stores", "alerts", "staff", "profile"],
+    Sales_Manager: ["index", "stores", "alerts", "staff", "profile"],
+    Sales_Admin: ["index", "stores", "alerts", "staff", "profile"],
+    Sales_Executive: ["index", "stores", "profile"],
     Warehouse_Manager: ["index", "profile"],
-    Delivery:          ["index", "profile"],
-    Accountant:        ["index", "profile"],
-    HR_Admin:          ["index", "staff", "profile"],
+    Delivery: ["index", "profile"],
+    Accountant: ["index", "profile"],
+    HR_Admin: ["index", "staff", "profile"],
 };
 
 const ALL_TABS = [
-    { name: "index",   title: "Home",    icon: "home-outline" },
-    { name: "stores",  title: "Stores",  icon: "storefront-outline" },
-    { name: "alerts",  title: "Alerts",  icon: "warning-outline" },
-    { name: "staff",   title: "Staff",   icon: "people-outline" },
+    { name: "index", title: "Home", icon: "home-outline" },
+    { name: "stores", title: "Stores", icon: "storefront-outline" },
+    { name: "alerts", title: "Alerts", icon: "warning-outline" },
+    { name: "staff", title: "Staff", icon: "people-outline" },
     { name: "profile", title: "Profile", icon: "person-outline" },
 ];
 
@@ -38,7 +38,7 @@ export default function TabsLayout() {
         <Tabs
             screenOptions={{
                 headerShown: false,
-                tabBarActiveTintColor: PURPLE,
+                tabBarActiveTintColor: GOLD,
                 tabBarInactiveTintColor: "#aaa",
                 tabBarStyle: {
                     backgroundColor: "#fff",

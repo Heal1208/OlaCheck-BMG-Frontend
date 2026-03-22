@@ -8,7 +8,7 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { login, saveSession } from "../../src/services/authService";
 
-const PURPLE = "#5B4FD9";
+const GOLD = "#C8960C";
 
 const showAlert = (title, message) => {
     if (Platform.OS === "web") {
@@ -53,7 +53,7 @@ export default function LoginScreen() {
                     <View style={styles.logoBox}>
                         <Text style={styles.logoLetter}>O</Text>
                     </View>
-                    <Text style={styles.appName}>OlaCheck</Text>
+                    <Text style={styles.appName}>OlaCheck-BMG</Text>
                     <Text style={styles.appSub}>Smart Retail Management</Text>
                 </View>
 
@@ -141,8 +141,8 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#fff" },
     scroll: { padding: 24, paddingBottom: 40 },
     logoWrap: { alignItems: "center", marginTop: 32, marginBottom: 32 },
-    logoBox: { width: 64, height: 64, borderRadius: 16, backgroundColor: "#C8960C", alignItems: "center", justifyContent: "center", marginBottom: 12 },
-    logoLetter: { fontSize: 32, fontWeight: "700", color: "#000000" },
+    logoBox: { width: 64, height: 64, borderRadius: 16, backgroundColor: GOLD, alignItems: "center", justifyContent: "center", marginBottom: 12 },
+    logoLetter: { fontSize: 32, fontWeight: "700", color: "#fff" },
     appName: { fontSize: 20, fontWeight: "700", color: "#111" },
     appSub: { fontSize: 13, color: "#888", marginTop: 2 },
     title: { fontSize: 28, fontWeight: "800", color: "#111", marginBottom: 6 },
@@ -153,11 +153,11 @@ const styles = StyleSheet.create({
     row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
     checkRow: { flexDirection: "row", alignItems: "center", gap: 8 },
     checkbox: { width: 18, height: 18, borderWidth: 1.5, borderColor: "#ccc", borderRadius: 4, alignItems: "center", justifyContent: "center" },
-    checkboxActive: { backgroundColor: PURPLE, borderColor: PURPLE },
+    checkboxActive: { backgroundColor: GOLD, borderColor: GOLD },
     checkLabel: { fontSize: 13, color: "#444" },
-    forgotText: { fontSize: 13, color: PURPLE, fontWeight: "600" },
-    signInBtn: { backgroundColor: "#C8960C", borderRadius: 14, paddingVertical: 18, alignItems: "center", marginBottom: 28 },
-    signInText: { color: "#000000", fontSize: 16, fontWeight: "700" },
+    forgotText: { fontSize: 13, color: GOLD, fontWeight: "600" },
+    signInBtn: { backgroundColor: GOLD, borderRadius: 14, paddingVertical: 18, alignItems: "center", marginBottom: 28 },
+    signInText: { color: "#fff", fontSize: 16, fontWeight: "700" },
     dividerRow: { flexDirection: "row", alignItems: "center", marginBottom: 20, gap: 8 },
     dividerLine: { flex: 1, height: 1, backgroundColor: "#e8e8e8" },
     dividerText: { fontSize: 13, color: "#999" },
