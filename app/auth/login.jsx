@@ -110,25 +110,6 @@ export default function LoginScreen() {
                     }
                 </TouchableOpacity>
 
-                <View style={styles.dividerRow}>
-                    <View style={styles.dividerLine} />
-                    <Text style={styles.dividerText}>Or sign in with</Text>
-                    <View style={styles.dividerLine} />
-                </View>
-
-                <View style={styles.socialRow}>
-                    {[
-                        { label: "Google", icon: "logo-google" },
-                        { label: "Microsoft", icon: "logo-windows" },
-                        { label: "Apple", icon: "logo-apple" },
-                    ].map((s) => (
-                        <TouchableOpacity key={s.label} style={styles.socialBtn}>
-                            <Ionicons name={s.icon} size={20} color="#333" />
-                            <Text style={styles.socialLabel}>{s.label}</Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-
                 <Text style={styles.secureText}>
                     Protected by enterprise-grade security. Your data is encrypted and secure.
                 </Text>
@@ -158,11 +139,5 @@ const styles = StyleSheet.create({
     forgotText: { fontSize: 13, color: GOLD, fontWeight: "600" },
     signInBtn: { backgroundColor: GOLD, borderRadius: 14, paddingVertical: 18, alignItems: "center", marginBottom: 28 },
     signInText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-    dividerRow: { flexDirection: "row", alignItems: "center", marginBottom: 20, gap: 8 },
-    dividerLine: { flex: 1, height: 1, backgroundColor: "#e8e8e8" },
-    dividerText: { fontSize: 13, color: "#999" },
-    socialRow: { flexDirection: "row", gap: 12, marginBottom: 28 },
-    socialBtn: { flex: 1, borderWidth: 1, borderColor: "#e8e8e8", borderRadius: 12, paddingVertical: 14, alignItems: "center", gap: 6 },
-    socialLabel: { fontSize: 12, color: "#444" },
     secureText: { fontSize: 12, color: "#aaa", textAlign: "center", lineHeight: 18 },
 });
