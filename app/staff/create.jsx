@@ -1,41 +1,23 @@
 import { useEffect, useState } from "react";
 import {
     View, Text, StyleSheet, TextInput, TouchableOpacity,
-    ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform, Alert,
+    ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { createStaff, getRoles } from "../../src/services/staffService";
+import AlertBox, { useAlert } from "../../components/AlertBox";
 
 const GOLD = "#C8960C";
-
-const showAlert = (title, message, buttons) => {
-    if (Platform.OS === "web") {
-        const msg = `${title}\n\n${message}`;
-        if (buttons && buttons.length > 1) {
-            const confirmed = window.confirm(msg);
-            if (confirmed) {
-                const btn = buttons.find(b => b.style === "destructive" || b.text === "OK");
-                btn?.onPress?.();
-            }
-        } else {
-            window.alert(msg);
-            buttons?.[0]?.onPress?.();
-        }
-    } else {
-        Alert.alert(title, message, buttons);
-    }
-};
 
 export default function CreateStaffScreen() {
     const [form, setForm] = useState({ full_name: "", email: "", phone: "", password: "", role_id: null });
     const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showPw, setShowPw] = useState(false);
+    const { alertConfig, showAlert, hideAlert } = useAlert();
 
-    useEffect(() => {
-        getRoles().then((r) => { if (r.success) setRoles(r.data); });
-    }, []);
+    useEffect(() => { getRoles().then((r) => { if (r.success) setRoles(r.data); }); }, []);
 
     const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
 
@@ -50,9 +32,7 @@ export default function CreateStaffScreen() {
         try {
             const r = await createStaff(form);
             if (r.success) {
-                showAlert("Success", "Staff account created.", [
-                    { text: "OK", onPress: () => router.back() }
-                ]);
+                showAlert("Success", "Staff account created.", [{ text: "OK", onPress: () => router.back() }]);
             } else {
                 showAlert("Failed", r.message);
             }
@@ -64,6 +44,7 @@ export default function CreateStaffScreen() {
     return (
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
             <View style={styles.container}>
+                <AlertBox config={alertConfig} onHide={hideAlert} />
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => router.back()}>
                         <Ionicons name="arrow-back" size={22} color="#fff" />
@@ -71,7 +52,6 @@ export default function CreateStaffScreen() {
                     <Text style={styles.headerTitle}>Create Staff Account</Text>
                     <View style={{ width: 22 }} />
                 </View>
-
                 <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
                     {[
                         { key: "full_name", label: "Full Name", placeholder: "Enter full name", keyboard: "default" },
@@ -80,57 +60,29 @@ export default function CreateStaffScreen() {
                     ].map((f) => (
                         <View key={f.key} style={styles.field}>
                             <Text style={styles.label}>{f.label}</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder={f.placeholder}
-                                placeholderTextColor="#aaa"
-                                value={form[f.key]}
-                                onChangeText={(v) => set(f.key, v)}
-                                keyboardType={f.keyboard}
-                                autoCapitalize="none"
-                            />
+                            <TextInput style={styles.input} placeholder={f.placeholder} placeholderTextColor="#aaa" value={form[f.key]} onChangeText={(v) => set(f.key, v)} keyboardType={f.keyboard} autoCapitalize="none" />
                         </View>
                     ))}
-
                     <View style={styles.field}>
                         <Text style={styles.label}>Password</Text>
                         <View style={styles.pwRow}>
-                            <TextInput
-                                style={styles.pwInput}
-                                placeholder="Minimum 8 characters"
-                                placeholderTextColor="#aaa"
-                                value={form.password}
-                                onChangeText={(v) => set("password", v)}
-                                secureTextEntry={!showPw}
-                            />
+                            <TextInput style={styles.pwInput} placeholder="Minimum 8 characters" placeholderTextColor="#aaa" value={form.password} onChangeText={(v) => set("password", v)} secureTextEntry={!showPw} />
                             <TouchableOpacity onPress={() => setShowPw(!showPw)}>
                                 <Ionicons name={showPw ? "eye-outline" : "eye-off-outline"} size={18} color="#aaa" />
                             </TouchableOpacity>
                         </View>
                     </View>
-
                     <View style={styles.field}>
                         <Text style={styles.label}>Role</Text>
                         <View style={styles.roleGrid}>
                             {roles.map((r) => (
-                                <TouchableOpacity
-                                    key={r.role_id}
-                                    style={[styles.roleBtn, form.role_id === r.role_id && styles.roleBtnActive]}
-                                    onPress={() => set("role_id", r.role_id)}
-                                >
-                                    <Text style={[styles.roleBtnText, form.role_id === r.role_id && styles.roleBtnTextActive]}>
-                                        {r.role_name.replace("_", " ")}
-                                    </Text>
+                                <TouchableOpacity key={r.role_id} style={[styles.roleBtn, form.role_id === r.role_id && styles.roleBtnActive]} onPress={() => set("role_id", r.role_id)}>
+                                    <Text style={[styles.roleBtnText, form.role_id === r.role_id && styles.roleBtnTextActive]}>{r.role_name.replace("_", " ")}</Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
                     </View>
-
-                    <TouchableOpacity
-                        style={[styles.createBtn, loading && { opacity: 0.7 }]}
-                        onPress={handleCreate}
-                        disabled={loading}
-                    >
+                    <TouchableOpacity style={[styles.createBtn, loading && { opacity: 0.7 }]} onPress={handleCreate} disabled={loading}>
                         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.createBtnText}>Create Account</Text>}
                     </TouchableOpacity>
                 </ScrollView>

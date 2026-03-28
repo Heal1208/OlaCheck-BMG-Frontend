@@ -1,31 +1,14 @@
 import { useEffect, useState } from "react";
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
-  Alert, ActivityIndicator, ScrollView, Platform,
+  ActivityIndicator, ScrollView,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { getUser, changePassword, logout, clearSession } from "../../src/services/authService";
+import AlertBox, { useAlert } from "../../components/AlertBox";
 
 const GOLD = "#C8960C";
-
-const showAlert = (title, message, buttons) => {
-  if (Platform.OS === "web") {
-    const msg = `${title}\n\n${message}`;
-    if (buttons && buttons.length > 1) {
-      const confirmed = window.confirm(msg);
-      if (confirmed) {
-        const confirmBtn = buttons.find(b => b.style === "destructive" || b.text === "OK");
-        confirmBtn?.onPress?.();
-      }
-    } else {
-      window.alert(msg);
-      buttons?.[0]?.onPress?.();
-    }
-  } else {
-    Alert.alert(title, message, buttons);
-  }
-};
 
 export default function ProfileScreen() {
   const [user, setUser] = useState(null);
@@ -36,6 +19,7 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(false);
   const [showCur, setShowCur] = useState(false);
   const [showNew, setShowNew] = useState(false);
+  const { alertConfig, showAlert, hideAlert } = useAlert();
 
   useEffect(() => { getUser().then(setUser); }, []);
 
@@ -53,17 +37,10 @@ export default function ProfileScreen() {
     try {
       const r = await changePassword(currentPw, newPw);
       if (r.success) {
-        showAlert("Success", "Password changed successfully.", [
-          {
-            text: "OK",
-            onPress: () => {
-              setShowForm(false);
-              setCurrentPw("");
-              setNewPw("");
-              setConfirmPw("");
-            }
-          }
-        ]);
+        showAlert("Success", "Password changed successfully.", [{
+          text: "OK",
+          onPress: () => { setShowForm(false); setCurrentPw(""); setNewPw(""); setConfirmPw(""); }
+        }]);
       } else {
         showAlert("Failed", r.message);
       }
@@ -73,34 +50,27 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = () => {
-    showAlert(
-      "Sign Out",
-      "Are you sure you want to sign out?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Sign Out",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await logout();
-            } catch { }
-            await clearSession();
-            router.replace("/auth/login");
-          },
+    showAlert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out", style: "destructive",
+        onPress: async () => {
+          try { await logout(); } catch { }
+          await clearSession();
+          router.replace("/auth/login");
         },
-      ]
-    );
+      },
+    ]);
   };
 
   if (!user) return <View style={styles.center}><ActivityIndicator color={GOLD} /></View>;
 
   return (
     <ScrollView style={styles.container}>
+      <AlertBox config={alertConfig} onHide={hideAlert} />
       <View style={styles.headerBg}>
         <Text style={styles.headerTitle}>Profile</Text>
       </View>
-
       <View style={styles.avatarWrap}>
         <View style={styles.avatar}>
           <Text style={styles.avatarLetter}>{user.full_name?.[0]}</Text>
@@ -110,7 +80,6 @@ export default function ProfileScreen() {
           <Text style={styles.roleText}>{user.role?.replace("_", " ")}</Text>
         </View>
       </View>
-
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>ACCOUNT INFO</Text>
         <View style={styles.card}>
@@ -131,14 +100,9 @@ export default function ProfileScreen() {
           ))}
         </View>
       </View>
-
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>SECURITY</Text>
-
-        <TouchableOpacity
-          style={[styles.card, styles.actionRow]}
-          onPress={() => setShowForm(!showForm)}
-        >
+        <TouchableOpacity style={[styles.card, styles.actionRow]} onPress={() => setShowForm(!showForm)}>
           <View style={styles.actionLeft}>
             <View style={[styles.actionIcon, { backgroundColor: "#E8F5E9" }]}>
               <Ionicons name="lock-closed-outline" size={18} color="#27AE60" />
@@ -147,67 +111,33 @@ export default function ProfileScreen() {
           </View>
           <Ionicons name={showForm ? "chevron-up" : "chevron-down"} size={18} color="#aaa" />
         </TouchableOpacity>
-
         {showForm && (
           <View style={[styles.card, { marginTop: 10, gap: 12 }]}>
             <View style={styles.pwRow}>
-              <TextInput
-                style={styles.pwInput}
-                placeholder="Current Password"
-                placeholderTextColor="#aaa"
-                secureTextEntry={!showCur}
-                value={currentPw}
-                onChangeText={setCurrentPw}
-              />
+              <TextInput style={styles.pwInput} placeholder="Current Password" placeholderTextColor="#aaa" secureTextEntry={!showCur} value={currentPw} onChangeText={setCurrentPw} />
               <TouchableOpacity onPress={() => setShowCur(!showCur)}>
                 <Ionicons name={showCur ? "eye-outline" : "eye-off-outline"} size={18} color="#aaa" />
               </TouchableOpacity>
             </View>
-
             <View style={styles.pwRow}>
-              <TextInput
-                style={styles.pwInput}
-                placeholder="New Password (min 8)"
-                placeholderTextColor="#aaa"
-                secureTextEntry={!showNew}
-                value={newPw}
-                onChangeText={setNewPw}
-              />
+              <TextInput style={styles.pwInput} placeholder="New Password (min 8)" placeholderTextColor="#aaa" secureTextEntry={!showNew} value={newPw} onChangeText={setNewPw} />
               <TouchableOpacity onPress={() => setShowNew(!showNew)}>
                 <Ionicons name={showNew ? "eye-outline" : "eye-off-outline"} size={18} color="#aaa" />
               </TouchableOpacity>
             </View>
-
             <View style={styles.pwRow}>
-              <TextInput
-                style={styles.pwInput}
-                placeholder="Confirm New Password"
-                placeholderTextColor="#aaa"
-                secureTextEntry
-                value={confirmPw}
-                onChangeText={setConfirmPw}
-              />
+              <TextInput style={styles.pwInput} placeholder="Confirm New Password" placeholderTextColor="#aaa" secureTextEntry value={confirmPw} onChangeText={setConfirmPw} />
             </View>
-
-            <TouchableOpacity
-              style={[styles.saveBtn, loading && { opacity: 0.7 }]}
-              onPress={handleChangePassword}
-              disabled={loading}
-            >
-              {loading
-                ? <ActivityIndicator color="#fff" />
-                : <Text style={styles.saveBtnText}>Update Password</Text>
-              }
+            <TouchableOpacity style={[styles.saveBtn, loading && { opacity: 0.7 }]} onPress={handleChangePassword} disabled={loading}>
+              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveBtnText}>Update Password</Text>}
             </TouchableOpacity>
           </View>
         )}
       </View>
-
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
         <Ionicons name="log-out-outline" size={18} color="#E53935" />
         <Text style={styles.logoutText}>Sign Out</Text>
       </TouchableOpacity>
-
       <View style={{ height: 40 }} />
     </ScrollView>
   );

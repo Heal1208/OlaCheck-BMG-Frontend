@@ -1,42 +1,25 @@
 import { useEffect, useState, useCallback } from "react";
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  ActivityIndicator, RefreshControl, Alert, Platform,
+  ActivityIndicator, RefreshControl,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { getStaffList, deleteStaff } from "../../src/services/staffService";
 import { getUser } from "../../src/services/authService";
+import AlertBox, { useAlert } from "../../components/AlertBox";
 
 const GOLD = "#C8960C";
 const MANAGER_ROLES = ["Sales_Manager", "Director", "Deputy_Director"];
-
-const showAlert = (title, message, buttons) => {
-  if (Platform.OS === "web") {
-    const msg = `${title}\n\n${message}`;
-    if (buttons && buttons.length > 1) {
-      const confirmed = window.confirm(msg);
-      if (confirmed) {
-        const btn = buttons.find(b => b.style === "destructive" || b.text === "OK");
-        btn?.onPress?.();
-      }
-    } else {
-      window.alert(msg);
-      buttons?.[0]?.onPress?.();
-    }
-  } else {
-    Alert.alert(title, message, buttons);
-  }
-};
 
 export default function StaffScreen() {
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const { alertConfig, showAlert, hideAlert } = useAlert();
 
   useEffect(() => { getUser().then(setCurrentUser); }, []);
-
   useFocusEffect(useCallback(() => { fetchStaff(); }, []));
 
   const fetchStaff = async () => {
@@ -56,11 +39,8 @@ export default function StaffScreen() {
           text: "Deactivate", style: "destructive",
           onPress: async () => {
             const r = await deleteStaff(item.user_id);
-            if (r.success) {
-              fetchStaff();
-            } else {
-              showAlert("Failed", r.message);
-            }
+            if (r.success) fetchStaff();
+            else showAlert("Failed", r.message);
           },
         },
       ]
@@ -100,27 +80,20 @@ export default function StaffScreen() {
 
   return (
     <View style={styles.container}>
+      <AlertBox config={alertConfig} onHide={hideAlert} />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Staff</Text>
         <TouchableOpacity onPress={() => router.push("/staff/create")}>
           <Ionicons name="add-circle-outline" size={26} color="#fff" />
         </TouchableOpacity>
       </View>
-
       <Text style={styles.countText}>{staff.length} staff members</Text>
-
       <FlatList
         data={staff}
         keyExtractor={(item) => String(item.user_id)}
         renderItem={renderItem}
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => { setRefreshing(true); fetchStaff(); }}
-            colors={[GOLD]}
-          />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchStaff(); }} colors={[GOLD]} />}
         ListEmptyComponent={
           <View style={styles.empty}>
             <Ionicons name="people-outline" size={48} color="#ddd" />

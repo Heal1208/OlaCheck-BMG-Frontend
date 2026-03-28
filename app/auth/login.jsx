@@ -1,22 +1,15 @@
 import { useState } from "react";
 import {
     View, Text, TextInput, TouchableOpacity,
-    StyleSheet, Alert, ActivityIndicator,
+    StyleSheet, ActivityIndicator,
     KeyboardAvoidingView, Platform, ScrollView,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { login, saveSession } from "../../src/services/authService";
+import AlertBox, { useAlert } from "../../components/AlertBox";
 
 const GOLD = "#C8960C";
-
-const showAlert = (title, message) => {
-    if (Platform.OS === "web") {
-        window.alert(`${title}\n\n${message}`);
-    } else {
-        Alert.alert(title, message);
-    }
-};
 
 export default function LoginScreen() {
     const [email, setEmail] = useState("");
@@ -24,11 +17,11 @@ export default function LoginScreen() {
     const [showPw, setShowPw] = useState(false);
     const [keepSignedIn, setKeep] = useState(false);
     const [loading, setLoading] = useState(false);
+    const { alertConfig, showAlert, hideAlert } = useAlert();
 
     const handleLogin = async () => {
         if (!email.trim() || !password.trim()) {
-            showAlert("Error", "Please enter your email and password.");
-            return;
+            showAlert("Error", "Please enter your email and password."); return;
         }
         setLoading(true);
         try {
@@ -41,13 +34,12 @@ export default function LoginScreen() {
             }
         } catch {
             showAlert("Connection Error", "Cannot connect to server. Check your network.");
-        } finally {
-            setLoading(false);
-        }
+        } finally { setLoading(false); }
     };
 
     return (
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+            <AlertBox config={alertConfig} onHide={hideAlert} />
             <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
                 <View style={styles.logoWrap}>
                     <View style={styles.logoBox}>

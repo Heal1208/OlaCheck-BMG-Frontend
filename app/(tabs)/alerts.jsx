@@ -1,32 +1,14 @@
 import { useState, useCallback } from "react";
 import {
     View, Text, StyleSheet, FlatList, TouchableOpacity,
-    ActivityIndicator, RefreshControl, Alert, Platform,
+    ActivityIndicator, RefreshControl,
 } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { getAlerts, resolveAlert } from "../../src/services/checkinService";
+import AlertBox, { useAlert } from "../../components/AlertBox";
 
 const GOLD = "#C8960C";
-
-const showAlert = (title, message, buttons) => {
-    if (Platform.OS === "web") {
-        const msg = `${title}\n\n${message}`;
-        if (buttons && buttons.length > 1) {
-            const confirmed = window.confirm(msg);
-            if (confirmed) {
-                const btn = buttons.find(b => b.style === "destructive" || b.text === "OK");
-                btn?.onPress?.();
-            }
-        } else {
-            window.alert(msg);
-            buttons?.[0]?.onPress?.();
-        }
-    } else {
-        Alert.alert(title, message, buttons);
-    }
-};
-
 const ALERT_TYPE = {
     low_stock: { color: "#E65100", bg: "#FFF3E0", icon: "warning-outline", label: "Low Stock" },
     near_expiry: { color: "#6A1B9A", bg: "#F3E5F5", icon: "time-outline", label: "Near Expiry" },
@@ -37,6 +19,7 @@ export default function AlertsScreen() {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [filter, setFilter] = useState("0");
+    const { alertConfig, showAlert, hideAlert } = useAlert();
 
     useFocusEffect(useCallback(() => { fetchAlerts(); }, []));
 
@@ -79,9 +62,7 @@ export default function AlertsScreen() {
                             <Text style={[styles.typeBadgeText, { color: type.color }]}>{type.label}</Text>
                         </View>
                     </View>
-                    <Text style={styles.storeName}>
-                        <Ionicons name="storefront-outline" size={12} color="#888" /> {item.store_name}
-                    </Text>
+                    <Text style={styles.storeName}>{item.store_name}</Text>
                     <Text style={styles.storeAddr}>{item.district}, {item.city}</Text>
                     <View style={styles.metaRow}>
                         <View style={styles.metaItem}>
@@ -92,16 +73,12 @@ export default function AlertsScreen() {
                             <Ionicons name="alert-circle-outline" size={12} color="#888" />
                             <Text style={styles.metaText}>Threshold: {item.low_stock_threshold}</Text>
                         </View>
-                        <Text style={styles.dateText}>
-                            {new Date(item.created_at).toLocaleDateString()}
-                        </Text>
+                        <Text style={styles.dateText}>{new Date(item.created_at).toLocaleDateString()}</Text>
                     </View>
                     {item.is_resolved ? (
                         <View style={styles.resolvedBadge}>
                             <Ionicons name="checkmark-circle" size={13} color="#27AE60" />
-                            <Text style={styles.resolvedText}>
-                                Resolved by {item.resolved_by_name}
-                            </Text>
+                            <Text style={styles.resolvedText}>Resolved by {item.resolved_by_name}</Text>
                         </View>
                     ) : (
                         <TouchableOpacity style={styles.resolveBtn} onPress={() => handleResolve(item)}>
@@ -115,6 +92,7 @@ export default function AlertsScreen() {
 
     return (
         <View style={styles.container}>
+            <AlertBox config={alertConfig} onHide={hideAlert} />
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Alerts</Text>
                 {alerts.length > 0 && (
@@ -123,24 +101,17 @@ export default function AlertsScreen() {
                     </View>
                 )}
             </View>
-
             <View style={styles.filterRow}>
-                {[
-                    { label: "Unresolved", value: "0" },
-                    { label: "Resolved", value: "1" },
-                ].map((f) => (
+                {[{ label: "Unresolved", value: "0" }, { label: "Resolved", value: "1" }].map((f) => (
                     <TouchableOpacity
                         key={f.value}
                         style={[styles.filterBtn, filter === f.value && styles.filterBtnActive]}
                         onPress={() => { setFilter(f.value); setLoading(true); setTimeout(fetchAlerts, 0); }}
                     >
-                        <Text style={[styles.filterBtnText, filter === f.value && styles.filterBtnTextActive]}>
-                            {f.label}
-                        </Text>
+                        <Text style={[styles.filterBtnText, filter === f.value && styles.filterBtnTextActive]}>{f.label}</Text>
                     </TouchableOpacity>
                 ))}
             </View>
-
             {loading
                 ? <View style={styles.center}><ActivityIndicator size="large" color={GOLD} /></View>
                 : (
@@ -149,19 +120,11 @@ export default function AlertsScreen() {
                         keyExtractor={(item) => String(item.alert_id)}
                         renderItem={renderAlert}
                         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-                        refreshControl={
-                            <RefreshControl
-                                refreshing={refreshing}
-                                onRefresh={() => { setRefreshing(true); fetchAlerts(); }}
-                                colors={[GOLD]}
-                            />
-                        }
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAlerts(); }} colors={[GOLD]} />}
                         ListEmptyComponent={
                             <View style={styles.empty}>
                                 <Ionicons name="checkmark-circle-outline" size={48} color="#ddd" />
-                                <Text style={styles.emptyText}>
-                                    {filter === "0" ? "No active alerts" : "No resolved alerts"}
-                                </Text>
+                                <Text style={styles.emptyText}>{filter === "0" ? "No active alerts" : "No resolved alerts"}</Text>
                             </View>
                         }
                     />

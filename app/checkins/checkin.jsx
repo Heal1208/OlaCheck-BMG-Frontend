@@ -1,58 +1,35 @@
 import { useState } from "react";
 import {
     View, Text, StyleSheet, TouchableOpacity, ScrollView,
-    ActivityIndicator, Alert, Platform, TextInput,
+    ActivityIndicator, TextInput,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { createCheckin } from "../../src/services/checkinService";
+import AlertBox, { useAlert } from "../../components/AlertBox";
 
 const GOLD = "#C8960C";
-
-const showAlert = (title, message, buttons) => {
-    if (Platform.OS === "web") {
-        const msg = `${title}\n\n${message}`;
-        if (buttons && buttons.length > 1) {
-            const confirmed = window.confirm(msg);
-            if (confirmed) {
-                const btn = buttons.find(b => b.style === "destructive" || b.text === "OK");
-                btn?.onPress?.();
-            }
-        } else {
-            window.alert(msg);
-            buttons?.[0]?.onPress?.();
-        }
-    } else {
-        Alert.alert(title, message, buttons);
-    }
-};
 
 export default function CheckinScreen() {
     const { store } = useLocalSearchParams();
     const storeData = store ? JSON.parse(store) : null;
-
     const [loading, setLoading] = useState(false);
     const [note, setNote] = useState("");
+    const { alertConfig, showAlert, hideAlert } = useAlert();
 
     const handleCheckin = async () => {
         setLoading(true);
         try {
-            const result = await createCheckin({
-                store_id: storeData.store_id,
-                note: note || null,
-            });
+            const result = await createCheckin({ store_id: storeData.store_id, note: note || null });
             if (result.success) {
                 showAlert(
-                    "Check-in Successful ✓",
+                    "Check-in Successful",
                     `You have checked in at ${storeData.store_name}.`,
                     [{
                         text: "Start Stock Entry",
                         onPress: () => router.replace({
                             pathname: "/checkins/stock-entry",
-                            params: {
-                                check_id: result.data.check_id,
-                                store_name: storeData.store_name,
-                            }
+                            params: { check_id: result.data.check_id, store_name: storeData.store_name }
                         })
                     }]
                 );
@@ -66,6 +43,7 @@ export default function CheckinScreen() {
 
     return (
         <View style={styles.container}>
+            <AlertBox config={alertConfig} onHide={hideAlert} />
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="arrow-back" size={22} color="#fff" />
@@ -73,7 +51,6 @@ export default function CheckinScreen() {
                 <Text style={styles.headerTitle}>Store Check-in</Text>
                 <View style={{ width: 22 }} />
             </View>
-
             <ScrollView contentContainerStyle={styles.scroll}>
                 <View style={styles.storeCard}>
                     <View style={styles.storeIcon}>
@@ -81,19 +58,13 @@ export default function CheckinScreen() {
                     </View>
                     <View style={styles.storeInfo}>
                         <Text style={styles.storeName}>{storeData?.store_name}</Text>
-                        <Text style={styles.storeAddr}>
-                            {storeData?.address}, {storeData?.district}, {storeData?.city}
-                        </Text>
+                        <Text style={styles.storeAddr}>{storeData?.address}, {storeData?.district}, {storeData?.city}</Text>
                     </View>
                 </View>
-
                 <View style={styles.infoCard}>
                     <Ionicons name="information-circle-outline" size={20} color={GOLD} />
-                    <Text style={styles.infoText}>
-                        Bấm Check In để bắt đầu ghi nhận chuyến thăm cửa hàng này.
-                    </Text>
+                    <Text style={styles.infoText}>Tap Check In to record your visit to this store.</Text>
                 </View>
-
                 <Text style={styles.sectionLabel}>NOTE (OPTIONAL)</Text>
                 <TextInput
                     style={styles.noteInput}
@@ -104,12 +75,7 @@ export default function CheckinScreen() {
                     multiline
                     numberOfLines={3}
                 />
-
-                <TouchableOpacity
-                    style={[styles.checkinBtn, loading && { opacity: 0.7 }]}
-                    onPress={handleCheckin}
-                    disabled={loading}
-                >
+                <TouchableOpacity style={[styles.checkinBtn, loading && { opacity: 0.7 }]} onPress={handleCheckin} disabled={loading}>
                     {loading
                         ? <ActivityIndicator color="#fff" />
                         : <>

@@ -1,56 +1,31 @@
 import { useEffect, useState } from "react";
 import {
     View, Text, StyleSheet, TextInput, TouchableOpacity,
-    ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform, Alert,
+    ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { updateStore, deleteStore } from "../../src/services/storeService";
 import { getStaffList } from "../../src/services/staffService";
+import AlertBox, { useAlert } from "../../components/AlertBox";
 
 const GOLD = "#C8960C";
 const STORE_TYPES = ["grocery", "supermarket", "agency"];
 
-const showAlert = (title, message, buttons) => {
-    if (Platform.OS === "web") {
-        const msg = `${title}\n\n${message}`;
-        if (buttons && buttons.length > 1) {
-            const confirmed = window.confirm(msg);
-            if (confirmed) {
-                const btn = buttons.find(b => b.style === "destructive" || b.text === "OK");
-                btn?.onPress?.();
-            }
-        } else {
-            window.alert(msg);
-            buttons?.[0]?.onPress?.();
-        }
-    } else {
-        Alert.alert(title, message, buttons);
-    }
-};
-
 export default function EditStoreScreen() {
     const { store } = useLocalSearchParams();
     const storeData = store ? JSON.parse(store) : null;
-
     const [form, setForm] = useState({
-        store_name: storeData?.store_name || "",
-        store_type: storeData?.store_type || "",
-        owner_name: storeData?.owner_name || "",
-        phone: storeData?.phone || "",
-        address: storeData?.address || "",
-        district: storeData?.district || "",
-        city: storeData?.city || "",
-        assigned_staff_id: storeData?.assigned_staff_id || null,
+        store_name: storeData?.store_name || "", store_type: storeData?.store_type || "",
+        owner_name: storeData?.owner_name || "", phone: storeData?.phone || "",
+        address: storeData?.address || "", district: storeData?.district || "",
+        city: storeData?.city || "", assigned_staff_id: storeData?.assigned_staff_id || null,
     });
     const [staffList, setStaffList] = useState([]);
     const [loading, setLoading] = useState(false);
+    const { alertConfig, showAlert, hideAlert } = useAlert();
 
-    useEffect(() => {
-        getStaffList({ is_active: "1" }).then((r) => {
-            if (r.success) setStaffList(r.data.staff);
-        });
-    }, []);
+    useEffect(() => { getStaffList({ is_active: "1" }).then((r) => { if (r.success) setStaffList(r.data.staff); }); }, []);
 
     const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
 
@@ -59,53 +34,34 @@ export default function EditStoreScreen() {
         try {
             const r = await updateStore(storeData.store_id, form);
             if (r.success) {
-                showAlert("Success", "Store updated successfully.", [
-                    { text: "OK", onPress: () => router.back() }
-                ]);
-            } else {
-                showAlert("Failed", r.message);
-            }
-        } catch {
-            showAlert("Error", "Cannot connect to server.");
-        } finally { setLoading(false); }
+                showAlert("Success", "Store updated successfully.", [{ text: "OK", onPress: () => router.back() }]);
+            } else { showAlert("Failed", r.message); }
+        } catch { showAlert("Error", "Cannot connect to server."); }
+        finally { setLoading(false); }
     };
 
     const handleDelete = () => {
-        showAlert(
-            "Delete Store",
-            `Are you sure you want to delete "${storeData?.store_name}"?`,
-            [
-                { text: "Cancel", style: "cancel" },
-                {
-                    text: "Delete", style: "destructive",
-                    onPress: async () => {
-                        const r = await deleteStore(storeData.store_id);
-                        if (r.success) {
-                            showAlert("Success", "Store deleted.", [
-                                { text: "OK", onPress: () => router.back() }
-                            ]);
-                        } else {
-                            showAlert("Failed", r.message);
-                        }
-                    },
-                },
-            ]
-        );
+        showAlert("Delete Store", `Are you sure you want to delete "${storeData?.store_name}"?`, [
+            { text: "Cancel", style: "cancel" },
+            {
+                text: "Delete", style: "destructive", onPress: async () => {
+                    const r = await deleteStore(storeData.store_id);
+                    if (r.success) showAlert("Success", "Store deleted.", [{ text: "OK", onPress: () => router.back() }]);
+                    else showAlert("Failed", r.message);
+                }
+            },
+        ]);
     };
 
     return (
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
             <View style={styles.container}>
+                <AlertBox config={alertConfig} onHide={hideAlert} />
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()}>
-                        <Ionicons name="arrow-back" size={22} color="#fff" />
-                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => router.back()}><Ionicons name="arrow-back" size={22} color="#fff" /></TouchableOpacity>
                     <Text style={styles.headerTitle}>Edit Store</Text>
-                    <TouchableOpacity onPress={handleDelete}>
-                        <Ionicons name="trash-outline" size={22} color="#fff" />
-                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleDelete}><Ionicons name="trash-outline" size={22} color="#fff" /></TouchableOpacity>
                 </View>
-
                 <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
                     <Text style={styles.sectionLabel}>STORE INFO</Text>
                     {[
@@ -115,32 +71,19 @@ export default function EditStoreScreen() {
                     ].map((f) => (
                         <View key={f.key} style={styles.field}>
                             <Text style={styles.label}>{f.label}</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder={f.placeholder}
-                                placeholderTextColor="#aaa"
-                                value={form[f.key]}
-                                onChangeText={(v) => set(f.key, v)}
-                                keyboardType={f.keyboard || "default"}
-                            />
+                            <TextInput style={styles.input} placeholder={f.placeholder} placeholderTextColor="#aaa" value={form[f.key]} onChangeText={(v) => set(f.key, v)} keyboardType={f.keyboard || "default"} />
                         </View>
                     ))}
-
                     <View style={styles.field}>
                         <Text style={styles.label}>Store Type</Text>
                         <View style={styles.typeRow}>
                             {STORE_TYPES.map((t) => (
-                                <TouchableOpacity
-                                    key={t}
-                                    style={[styles.typeBtn, form.store_type === t && styles.typeBtnActive]}
-                                    onPress={() => set("store_type", t)}
-                                >
+                                <TouchableOpacity key={t} style={[styles.typeBtn, form.store_type === t && styles.typeBtnActive]} onPress={() => set("store_type", t)}>
                                     <Text style={[styles.typeBtnText, form.store_type === t && styles.typeBtnTextActive]}>{t}</Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
                     </View>
-
                     <Text style={styles.sectionLabel}>LOCATION</Text>
                     {[
                         { key: "address", label: "Address", placeholder: "Enter street address" },
@@ -149,41 +92,19 @@ export default function EditStoreScreen() {
                     ].map((f) => (
                         <View key={f.key} style={styles.field}>
                             <Text style={styles.label}>{f.label}</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder={f.placeholder}
-                                placeholderTextColor="#aaa"
-                                value={form[f.key]}
-                                onChangeText={(v) => set(f.key, v)}
-                            />
+                            <TextInput style={styles.input} placeholder={f.placeholder} placeholderTextColor="#aaa" value={form[f.key]} onChangeText={(v) => set(f.key, v)} />
                         </View>
                     ))}
-
                     <Text style={styles.sectionLabel}>ASSIGNED STAFF</Text>
                     <View style={styles.staffGrid}>
-                        {staffList
-                            .filter(s => ["Sales_Executive", "Sales_Admin"].includes(s.role_name))
-                            .map((s) => (
-                                <TouchableOpacity
-                                    key={s.user_id}
-                                    style={[styles.staffBtn, form.assigned_staff_id === s.user_id && styles.staffBtnActive]}
-                                    onPress={() => set("assigned_staff_id", s.user_id)}
-                                >
-                                    <Text style={[styles.staffBtnText, form.assigned_staff_id === s.user_id && styles.staffBtnTextActive]}>
-                                        {s.full_name}
-                                    </Text>
-                                    <Text style={[styles.staffBtnRole, form.assigned_staff_id === s.user_id && { color: "#ffffff99" }]}>
-                                        {s.role_name.replace("_", " ")}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
+                        {staffList.filter(s => ["Sales_Executive", "Sales_Admin"].includes(s.role_name)).map((s) => (
+                            <TouchableOpacity key={s.user_id} style={[styles.staffBtn, form.assigned_staff_id === s.user_id && styles.staffBtnActive]} onPress={() => set("assigned_staff_id", s.user_id)}>
+                                <Text style={[styles.staffBtnText, form.assigned_staff_id === s.user_id && styles.staffBtnTextActive]}>{s.full_name}</Text>
+                                <Text style={[styles.staffBtnRole, form.assigned_staff_id === s.user_id && { color: "#ffffff99" }]}>{s.role_name.replace("_", " ")}</Text>
+                            </TouchableOpacity>
+                        ))}
                     </View>
-
-                    <TouchableOpacity
-                        style={[styles.saveBtn, loading && { opacity: 0.7 }]}
-                        onPress={handleUpdate}
-                        disabled={loading}
-                    >
+                    <TouchableOpacity style={[styles.saveBtn, loading && { opacity: 0.7 }]} onPress={handleUpdate} disabled={loading}>
                         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveBtnText}>Save Changes</Text>}
                     </TouchableOpacity>
                 </ScrollView>

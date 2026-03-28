@@ -1,73 +1,37 @@
 import { useEffect, useState } from "react";
 import {
     View, Text, StyleSheet, TextInput, TouchableOpacity,
-    ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform, Alert,
+    ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { createStore } from "../../src/services/storeService";
 import { getStaffList } from "../../src/services/staffService";
+import AlertBox, { useAlert } from "../../components/AlertBox";
 
 const GOLD = "#C8960C";
 const STORE_TYPES = ["grocery", "supermarket", "agency"];
 
-const showAlert = (title, message, buttons) => {
-    if (Platform.OS === "web") {
-        const msg = `${title}\n\n${message}`;
-        if (buttons && buttons.length > 1) {
-            const confirmed = window.confirm(msg);
-            if (confirmed) {
-                const btn = buttons.find(b => b.style === "destructive" || b.text === "OK");
-                btn?.onPress?.();
-            }
-        } else {
-            window.alert(msg);
-            buttons?.[0]?.onPress?.();
-        }
-    } else {
-        Alert.alert(title, message, buttons);
-    }
-};
-
 export default function CreateStoreScreen() {
-    const [form, setForm] = useState({
-        store_name: "", store_type: "", owner_name: "",
-        phone: "", address: "", district: "", city: "",
-        assigned_staff_id: null,
-    });
+    const [form, setForm] = useState({ store_name: "", store_type: "", owner_name: "", phone: "", address: "", district: "", city: "", assigned_staff_id: null });
     const [staffList, setStaffList] = useState([]);
     const [loading, setLoading] = useState(false);
+    const { alertConfig, showAlert, hideAlert } = useAlert();
 
-    useEffect(() => {
-        getStaffList({ is_active: "1" }).then((r) => {
-            if (r.success) setStaffList(r.data.staff);
-        });
-    }, []);
+    useEffect(() => { getStaffList({ is_active: "1" }).then((r) => { if (r.success) setStaffList(r.data.staff); }); }, []);
 
     const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
 
     const handleCreate = async () => {
         const required = ["store_name", "store_type", "owner_name", "phone", "address", "district", "city"];
         const missing = required.filter((f) => !form[f]);
-        if (missing.length > 0) {
-            showAlert("Error", `Please fill in: ${missing.join(", ")}`); return;
-        }
-        if (!form.assigned_staff_id) {
-            showAlert("Error", "Please select assigned staff."); return;
-        }
-
+        if (missing.length > 0) { showAlert("Error", `Please fill in: ${missing.join(", ")}`); return; }
+        if (!form.assigned_staff_id) { showAlert("Error", "Please select assigned staff."); return; }
         setLoading(true);
         try {
-            const payload = {
-                ...form,
-                latitude: 0,
-                longitude: 0,
-            };
-            const r = await createStore(payload);
+            const r = await createStore({ ...form, latitude: 0, longitude: 0 });
             if (r.success) {
-                showAlert("Success", "Store created successfully.", [
-                    { text: "OK", onPress: () => router.back() }
-                ]);
+                showAlert("Success", "Store created successfully.", [{ text: "OK", onPress: () => router.back() }]);
             } else {
                 showAlert("Failed", r.message);
             }
@@ -79,14 +43,12 @@ export default function CreateStoreScreen() {
     return (
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
             <View style={styles.container}>
+                <AlertBox config={alertConfig} onHide={hideAlert} />
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()}>
-                        <Ionicons name="arrow-back" size={22} color="#fff" />
-                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => router.back()}><Ionicons name="arrow-back" size={22} color="#fff" /></TouchableOpacity>
                     <Text style={styles.headerTitle}>Add New Store</Text>
                     <View style={{ width: 22 }} />
                 </View>
-
                 <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
                     <Text style={styles.sectionLabel}>STORE INFO</Text>
                     {[
@@ -96,32 +58,19 @@ export default function CreateStoreScreen() {
                     ].map((f) => (
                         <View key={f.key} style={styles.field}>
                             <Text style={styles.label}>{f.label}</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder={f.placeholder}
-                                placeholderTextColor="#aaa"
-                                value={form[f.key]}
-                                onChangeText={(v) => set(f.key, v)}
-                                keyboardType={f.keyboard || "default"}
-                            />
+                            <TextInput style={styles.input} placeholder={f.placeholder} placeholderTextColor="#aaa" value={form[f.key]} onChangeText={(v) => set(f.key, v)} keyboardType={f.keyboard || "default"} />
                         </View>
                     ))}
-
                     <View style={styles.field}>
                         <Text style={styles.label}>Store Type</Text>
                         <View style={styles.typeRow}>
                             {STORE_TYPES.map((t) => (
-                                <TouchableOpacity
-                                    key={t}
-                                    style={[styles.typeBtn, form.store_type === t && styles.typeBtnActive]}
-                                    onPress={() => set("store_type", t)}
-                                >
+                                <TouchableOpacity key={t} style={[styles.typeBtn, form.store_type === t && styles.typeBtnActive]} onPress={() => set("store_type", t)}>
                                     <Text style={[styles.typeBtnText, form.store_type === t && styles.typeBtnTextActive]}>{t}</Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
                     </View>
-
                     <Text style={styles.sectionLabel}>LOCATION</Text>
                     {[
                         { key: "address", label: "Address", placeholder: "Enter street address" },
@@ -130,44 +79,19 @@ export default function CreateStoreScreen() {
                     ].map((f) => (
                         <View key={f.key} style={styles.field}>
                             <Text style={styles.label}>{f.label}</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder={f.placeholder}
-                                placeholderTextColor="#aaa"
-                                value={form[f.key]}
-                                onChangeText={(v) => set(f.key, v)}
-                            />
+                            <TextInput style={styles.input} placeholder={f.placeholder} placeholderTextColor="#aaa" value={form[f.key]} onChangeText={(v) => set(f.key, v)} />
                         </View>
                     ))}
-
                     <Text style={styles.sectionLabel}>ASSIGNED STAFF</Text>
                     <View style={styles.staffGrid}>
-                        {staffList
-                            .filter(s => ["Sales_Executive", "Sales_Admin"].includes(s.role_name))
-                            .map((s) => (
-                                <TouchableOpacity
-                                    key={s.user_id}
-                                    style={[styles.staffBtn, form.assigned_staff_id === s.user_id && styles.staffBtnActive]}
-                                    onPress={() => set("assigned_staff_id", s.user_id)}
-                                >
-                                    <Text style={[styles.staffBtnText, form.assigned_staff_id === s.user_id && styles.staffBtnTextActive]}>
-                                        {s.full_name}
-                                    </Text>
-                                    <Text style={[styles.staffBtnRole, form.assigned_staff_id === s.user_id && { color: "#ffffff99" }]}>
-                                        {s.role_name.replace("_", " ")}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        {staffList.filter(s => ["Sales_Executive", "Sales_Admin"].includes(s.role_name)).length === 0 && (
-                            <Text style={styles.noStaff}>No Sales staff available</Text>
-                        )}
+                        {staffList.filter(s => ["Sales_Executive", "Sales_Admin"].includes(s.role_name)).map((s) => (
+                            <TouchableOpacity key={s.user_id} style={[styles.staffBtn, form.assigned_staff_id === s.user_id && styles.staffBtnActive]} onPress={() => set("assigned_staff_id", s.user_id)}>
+                                <Text style={[styles.staffBtnText, form.assigned_staff_id === s.user_id && styles.staffBtnTextActive]}>{s.full_name}</Text>
+                                <Text style={[styles.staffBtnRole, form.assigned_staff_id === s.user_id && { color: "#ffffff99" }]}>{s.role_name.replace("_", " ")}</Text>
+                            </TouchableOpacity>
+                        ))}
                     </View>
-
-                    <TouchableOpacity
-                        style={[styles.createBtn, loading && { opacity: 0.7 }]}
-                        onPress={handleCreate}
-                        disabled={loading}
-                    >
+                    <TouchableOpacity style={[styles.createBtn, loading && { opacity: 0.7 }]} onPress={handleCreate} disabled={loading}>
                         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.createBtnText}>Create Store</Text>}
                     </TouchableOpacity>
                 </ScrollView>
@@ -196,7 +120,6 @@ const styles = StyleSheet.create({
     staffBtnText: { fontSize: 14, fontWeight: "600", color: "#111" },
     staffBtnTextActive: { color: "#fff" },
     staffBtnRole: { fontSize: 12, color: "#888", marginTop: 2 },
-    noStaff: { fontSize: 13, color: "#aaa", textAlign: "center", padding: 16 },
     createBtn: { backgroundColor: GOLD, borderRadius: 14, paddingVertical: 17, alignItems: "center", marginTop: 8 },
     createBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
 });
