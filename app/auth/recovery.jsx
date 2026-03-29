@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
     View, Text, TextInput, TouchableOpacity,
-    StyleSheet, Alert, ActivityIndicator,
+    StyleSheet, Alert, ActivityIndicator, Image,
     KeyboardAvoidingView, Platform, ScrollView,
 } from "react-native";
 import { router } from "expo-router";
@@ -38,9 +38,11 @@ export default function RecoveryScreen() {
                 </TouchableOpacity>
 
                 <View style={styles.brandRow}>
-                    <View style={styles.logoBox}>
-                        <Ionicons name="shield-checkmark" size={24} color="#fff" />
-                    </View>
+                    <Image
+                        source={require("../../assets/images/logo.jpg")}
+                        style={{ width: 64, height: 64, borderRadius: 16 }}
+                        resizeMode="contain"
+                    />
                     <View>
                         <Text style={styles.brandName}>OlaCheck-BMG</Text>
                         <Text style={styles.brandSub}>Smart Retail Management</Text>
@@ -98,7 +100,6 @@ const styles = StyleSheet.create({
     backRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 28 },
     backText: { fontSize: 14, color: "#555" },
     brandRow: { flexDirection: "row", alignItems: "center", gap: 14, marginBottom: 32 },
-    logoBox: { width: 52, height: 52, borderRadius: 14, backgroundColor: GOLD, alignItems: "center", justifyContent: "center" },
     brandName: { fontSize: 17, fontWeight: "700", color: "#111" },
     brandSub: { fontSize: 12, color: "#888", marginTop: 2 },
     title: { fontSize: 28, fontWeight: "800", color: "#111", marginBottom: 10 },

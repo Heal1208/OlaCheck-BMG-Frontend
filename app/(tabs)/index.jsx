@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { getUser } from "../../src/services/authService";
@@ -59,9 +59,11 @@ export default function HomeScreen() {
             <Text style={styles.roleText}>{user?.role?.replace("_", " ")}</Text>
           </View>
         </View>
-        <View style={styles.logoBox}>
-          <Text style={styles.logoLetter}>O</Text>
-        </View>
+        <Image
+          source={require("../../assets/images/logo.jpg")}
+          style={{ width: 64, height: 64, borderRadius: 16 }}
+          resizeMode="contain"
+        />
       </View>
 
       {canAccess("stores") && (
@@ -126,8 +128,6 @@ const styles = StyleSheet.create({
   userName: { fontSize: 22, fontWeight: "800", color: "#fff", marginTop: 2 },
   roleBadge: { marginTop: 8, backgroundColor: "#ffffff22", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4, alignSelf: "flex-start" },
   roleText: { fontSize: 12, color: "#fff", fontWeight: "600" },
-  logoBox: { width: 44, height: 44, borderRadius: 12, backgroundColor: "#ffffff22", alignItems: "center", justifyContent: "center" },
-  logoLetter: { fontSize: 22, fontWeight: "800", color: "#fff" },
   statsRow: { flexDirection: "row", padding: 16, gap: 8 },
   statCard: { flex: 1, backgroundColor: "#fff", borderRadius: 14, padding: 12, alignItems: "center" },
   statNum: { fontSize: 22, fontWeight: "800" },

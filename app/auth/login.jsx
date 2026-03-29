@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
     View, Text, TextInput, TouchableOpacity,
-    StyleSheet, ActivityIndicator,
+    StyleSheet, ActivityIndicator, Image,
     KeyboardAvoidingView, Platform, ScrollView,
 } from "react-native";
 import { router } from "expo-router";
@@ -42,9 +42,11 @@ export default function LoginScreen() {
             <AlertBox config={alertConfig} onHide={hideAlert} />
             <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
                 <View style={styles.logoWrap}>
-                    <View style={styles.logoBox}>
-                        <Text style={styles.logoLetter}>O</Text>
-                    </View>
+                    <Image
+                        source={require("../../assets/images/logo.jpg")}
+                        style={{ width: 64, height: 64, borderRadius: 16 }}
+                        resizeMode="contain"
+                    />
                     <Text style={styles.appName}>OlaCheck-BMG</Text>
                     <Text style={styles.appSub}>Smart Retail Management</Text>
                 </View>
@@ -114,9 +116,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#fff" },
     scroll: { padding: 24, paddingBottom: 40 },
     logoWrap: { alignItems: "center", marginTop: 32, marginBottom: 32 },
-    logoBox: { width: 64, height: 64, borderRadius: 16, backgroundColor: GOLD, alignItems: "center", justifyContent: "center", marginBottom: 12 },
-    logoLetter: { fontSize: 32, fontWeight: "700", color: "#fff" },
-    appName: { fontSize: 20, fontWeight: "700", color: "#111" },
+    appName: { fontSize: 20, fontWeight: "700", color: "#111", marginTop: 12 },
     appSub: { fontSize: 13, color: "#888", marginTop: 2 },
     title: { fontSize: 28, fontWeight: "800", color: "#111", marginBottom: 6 },
     subtitle: { fontSize: 14, color: "#888", marginBottom: 24 },
