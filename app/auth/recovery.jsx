@@ -1,27 +1,29 @@
 import { useState } from "react";
 import {
     View, Text, TextInput, TouchableOpacity,
-    StyleSheet, Alert, ActivityIndicator, Image,
+    StyleSheet, ActivityIndicator, Image,
     KeyboardAvoidingView, Platform, ScrollView,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import AlertBox, { useAlert } from "../../components/AlertBox";
 
 const GOLD = "#C8960C";
 
 export default function RecoveryScreen() {
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
+    const { alertConfig, showAlert, hideAlert } = useAlert();
 
     const handleSend = () => {
         if (!email.trim()) {
-            Alert.alert("Error", "Please enter your email address.");
+            showAlert("Error", "Please enter your email address.");
             return;
         }
         setLoading(true);
         setTimeout(() => {
             setLoading(false);
-            Alert.alert(
+            showAlert(
                 "Recovery Link Sent",
                 `A recovery link has been sent to ${email}. Please check your inbox.`,
                 [{ text: "OK", onPress: () => router.back() }]
@@ -31,6 +33,7 @@ export default function RecoveryScreen() {
 
     return (
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+            <AlertBox config={alertConfig} onHide={hideAlert} />
             <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
                 <TouchableOpacity style={styles.backRow} onPress={() => router.back()}>
                     <Ionicons name="arrow-back" size={18} color="#555" />

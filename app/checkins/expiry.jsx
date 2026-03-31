@@ -1,33 +1,16 @@
 import { useState, useEffect } from "react";
 import {
     View, Text, StyleSheet, TouchableOpacity, ScrollView,
-    ActivityIndicator, Alert, Platform, TextInput,
+    ActivityIndicator, TextInput,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import {
     getStockEntries, createExpiryRecord, completeCheckin,
 } from "../../src/services/checkinService";
+import AlertBox, { useAlert } from "../../components/AlertBox";
 
 const GOLD = "#C8960C";
-
-const showAlert = (title, message, buttons) => {
-    if (Platform.OS === "web") {
-        const msg = `${title}\n\n${message}`;
-        if (buttons && buttons.length > 1) {
-            const confirmed = window.confirm(msg);
-            if (confirmed) {
-                const btn = buttons.find(b => b.style === "destructive" || b.text === "OK");
-                btn?.onPress?.();
-            }
-        } else {
-            window.alert(msg);
-            buttons?.[0]?.onPress?.();
-        }
-    } else {
-        Alert.alert(title, message, buttons);
-    }
-};
 
 export default function ExpiryScreen() {
     const { check_id, store_name } = useLocalSearchParams();
@@ -37,6 +20,7 @@ export default function ExpiryScreen() {
     const [saving, setSaving] = useState(false);
     const [expanded, setExpanded] = useState(null);
     const [forms, setForms] = useState({});
+    const { alertConfig, showAlert, hideAlert } = useAlert();
 
     useEffect(() => {
         getStockEntries(parseInt(check_id)).then((r) => {
@@ -81,8 +65,7 @@ export default function ExpiryScreen() {
                 const msg = r.data.is_near_expiry
                     ? `⚠ Near expiry! Only ${r.data.days_left} days left.`
                     : `✓ Saved. ${r.data.days_left} days until expiry.`;
-                showAlert("Expiry Recorded", msg);
-                setExpanded(null);
+                showAlert("Expiry Recorded", msg, [{ text: "OK", onPress: () => setExpanded(null) }]);
             } else {
                 showAlert("Failed", r.message);
             }
@@ -91,26 +74,40 @@ export default function ExpiryScreen() {
         } finally { setSaving(false); }
     };
 
-    const handleComplete = async () => {
-        setSaving(true);
-        try {
-            const r = await completeCheckin(parseInt(check_id));
-            if (r.success) {
-                showAlert("Visit Complete!", "Check-in has been completed successfully.", [
-                    { text: "Done", onPress: () => router.replace("/(tabs)/stores") }
-                ]);
-            } else {
-                showAlert("Failed", r.message);
-            }
-        } catch {
-            showAlert("Error", "Cannot connect to server.");
-        } finally { setSaving(false); }
+    const handleComplete = () => {
+        showAlert(
+            "Complete Visit",
+            "Are you sure you want to complete this visit?",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Complete",
+                    onPress: async () => {
+                        setSaving(true);
+                        try {
+                            const r = await completeCheckin(parseInt(check_id));
+                            if (r.success) {
+                                showAlert("Visit Complete!", "Check-in has been completed successfully.", [
+                                    { text: "Done", onPress: () => router.replace("/(tabs)/stores") }
+                                ]);
+                            } else {
+                                showAlert("Failed", r.message);
+                            }
+                        } catch {
+                            showAlert("Error", "Cannot connect to server.");
+                        } finally { setSaving(false); }
+                    }
+                }
+            ]
+        );
     };
 
     if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={GOLD} /></View>;
 
     return (
         <View style={styles.container}>
+            <AlertBox config={alertConfig} onHide={hideAlert} />
+
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="arrow-back" size={22} color="#fff" />
