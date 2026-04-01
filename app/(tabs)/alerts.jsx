@@ -1,12 +1,17 @@
-import { useState, useCallback } from "react";
-import {
-    View, Text, StyleSheet, FlatList, TouchableOpacity,
-    ActivityIndicator, RefreshControl,
-} from "react-native";
-import { useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { getAlerts, resolveAlert } from "../../src/services/checkinService";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
+import {
+    ActivityIndicator,
+    FlatList,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 import AlertBox, { useAlert } from "../../components/AlertBox";
+import { getAlerts, resolveAlert } from "../../src/services/checkinService";
 
 const GOLD = "#C8960C";
 const ALERT_TYPE = {
@@ -18,16 +23,40 @@ export default function AlertsScreen() {
     const [alerts, setAlerts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [filter, setFilter] = useState("0");
+    const [filter, setFilter] = useState("0"); // "0" = unresolved, "1" = resolved
     const { alertConfig, showAlert, hideAlert } = useAlert();
 
-    useFocusEffect(useCallback(() => { fetchAlerts(); }, []));
+    // Fetch khi màn hình được focus
+    useFocusEffect(useCallback(() => {
+        fetchAlerts("0");
+        setFilter("0");
+    }, []));
 
-    const fetchAlerts = async () => {
+    // Re-fetch mỗi khi filter thay đổi
+    useEffect(() => {
+        fetchAlerts(filter);
+    }, [filter]);
+
+    const fetchAlerts = async (resolvedValue) => {
+        setLoading(true);
         try {
-            const r = await getAlerts({ is_resolved: filter });
-            if (r.success) setAlerts(r.data.alerts);
-        } finally { setLoading(false); setRefreshing(false); }
+            const r = await getAlerts({ is_resolved: resolvedValue });
+            if (r.success) {
+                setAlerts(r.data.alerts);
+            } else {
+                setAlerts([]);
+            }
+        } catch {
+            setAlerts([]);
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
+
+    const handleFilterChange = (val) => {
+        if (val === filter) return; // tránh re-fetch không cần thiết
+        setFilter(val);
     };
 
     const handleResolve = (item) => {
@@ -39,9 +68,16 @@ export default function AlertsScreen() {
                 {
                     text: "Resolve", style: "destructive",
                     onPress: async () => {
-                        const r = await resolveAlert(item.alert_id);
-                        if (r.success) fetchAlerts();
-                        else showAlert("Failed", r.message);
+                        try {
+                            const r = await resolveAlert(item.alert_id);
+                            if (r.success) {
+                                fetchAlerts(filter);
+                            } else {
+                                showAlert("Failed", r.message);
+                            }
+                        } catch {
+                            showAlert("Error", "Cannot connect to server.");
+                        }
                     }
                 }
             ]
@@ -73,15 +109,20 @@ export default function AlertsScreen() {
                             <Ionicons name="alert-circle-outline" size={12} color="#888" />
                             <Text style={styles.metaText}>Threshold: {item.low_stock_threshold}</Text>
                         </View>
-                        <Text style={styles.dateText}>{new Date(item.created_at).toLocaleDateString()}</Text>
+                        <Text style={styles.dateText}>
+                            {new Date(item.created_at).toLocaleDateString("vi-VN")}
+                        </Text>
                     </View>
                     {item.is_resolved ? (
                         <View style={styles.resolvedBadge}>
                             <Ionicons name="checkmark-circle" size={13} color="#27AE60" />
-                            <Text style={styles.resolvedText}>Resolved by {item.resolved_by_name}</Text>
+                            <Text style={styles.resolvedText}>
+                                Resolved{item.resolved_by_name ? ` by ${item.resolved_by_name}` : ""}
+                            </Text>
                         </View>
                     ) : (
                         <TouchableOpacity style={styles.resolveBtn} onPress={() => handleResolve(item)}>
+                            <Ionicons name="checkmark-outline" size={14} color="#E65100" />
                             <Text style={styles.resolveBtnText}>Mark as Resolved</Text>
                         </TouchableOpacity>
                     )}
@@ -90,46 +131,75 @@ export default function AlertsScreen() {
         );
     };
 
+    const FILTERS = [
+        { label: "Chưa xử lý", value: "0" },
+        { label: "Đã xử lý", value: "1" },
+    ];
+
     return (
         <View style={styles.container}>
             <AlertBox config={alertConfig} onHide={hideAlert} />
+
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Alerts</Text>
-                {alerts.length > 0 && (
+                {filter === "0" && alerts.length > 0 && (
                     <View style={styles.countBadge}>
                         <Text style={styles.countBadgeText}>{alerts.length}</Text>
                     </View>
                 )}
             </View>
+
+            {/* Filter tabs */}
             <View style={styles.filterRow}>
-                {[{ label: "Unresolved", value: "0" }, { label: "Resolved", value: "1" }].map((f) => (
+                {FILTERS.map((f) => (
                     <TouchableOpacity
                         key={f.value}
                         style={[styles.filterBtn, filter === f.value && styles.filterBtnActive]}
-                        onPress={() => { setFilter(f.value); setLoading(true); setTimeout(fetchAlerts, 0); }}
+                        onPress={() => handleFilterChange(f.value)}
+                        activeOpacity={0.8}
                     >
-                        <Text style={[styles.filterBtnText, filter === f.value && styles.filterBtnTextActive]}>{f.label}</Text>
+                        <Text style={[styles.filterBtnText, filter === f.value && styles.filterBtnTextActive]}>
+                            {f.label}
+                        </Text>
                     </TouchableOpacity>
                 ))}
             </View>
-            {loading
-                ? <View style={styles.center}><ActivityIndicator size="large" color={GOLD} /></View>
-                : (
-                    <FlatList
-                        data={alerts}
-                        keyExtractor={(item) => String(item.alert_id)}
-                        renderItem={renderAlert}
-                        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAlerts(); }} colors={[GOLD]} />}
-                        ListEmptyComponent={
-                            <View style={styles.empty}>
-                                <Ionicons name="checkmark-circle-outline" size={48} color="#ddd" />
-                                <Text style={styles.emptyText}>{filter === "0" ? "No active alerts" : "No resolved alerts"}</Text>
-                            </View>
-                        }
-                    />
-                )
-            }
+
+            {loading ? (
+                <View style={styles.center}>
+                    <ActivityIndicator size="large" color={GOLD} />
+                </View>
+            ) : (
+                <FlatList
+                    data={alerts}
+                    keyExtractor={(item) => String(item.alert_id)}
+                    renderItem={renderAlert}
+                    contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={() => {
+                                setRefreshing(true);
+                                fetchAlerts(filter);
+                            }}
+                            colors={[GOLD]}
+                            tintColor={GOLD}
+                        />
+                    }
+                    ListEmptyComponent={
+                        <View style={styles.empty}>
+                            <Ionicons
+                                name={filter === "0" ? "checkmark-circle-outline" : "time-outline"}
+                                size={48}
+                                color="#ddd"
+                            />
+                            <Text style={styles.emptyText}>
+                                {filter === "0" ? "Không có cảnh báo nào" : "Chưa có cảnh báo đã xử lý"}
+                            </Text>
+                        </View>
+                    }
+                />
+            )}
         </View>
     );
 }
@@ -137,16 +207,31 @@ export default function AlertsScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#f8f8f8" },
     center: { flex: 1, alignItems: "center", justifyContent: "center" },
-    header: { backgroundColor: GOLD, flexDirection: "row", alignItems: "center", gap: 10, paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20 },
+    header: {
+        backgroundColor: GOLD, flexDirection: "row", alignItems: "center",
+        gap: 10, paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20,
+    },
     headerTitle: { fontSize: 20, fontWeight: "800", color: "#fff" },
     countBadge: { backgroundColor: "#E53935", borderRadius: 12, paddingHorizontal: 8, paddingVertical: 3 },
     countBadgeText: { fontSize: 12, color: "#fff", fontWeight: "700" },
-    filterRow: { flexDirection: "row", backgroundColor: "#fff", padding: 12, gap: 10, borderBottomWidth: 1, borderBottomColor: "#f0f0f0" },
-    filterBtn: { flex: 1, paddingVertical: 8, borderRadius: 20, backgroundColor: "#f4f4f4", alignItems: "center" },
+
+    filterRow: {
+        flexDirection: "row", backgroundColor: "#fff",
+        padding: 10, gap: 10,
+        borderBottomWidth: 1, borderBottomColor: "#f0f0f0",
+    },
+    filterBtn: {
+        flex: 1, paddingVertical: 10, borderRadius: 20,
+        backgroundColor: "#f4f4f4", alignItems: "center",
+    },
     filterBtnActive: { backgroundColor: GOLD },
     filterBtnText: { fontSize: 13, color: "#666", fontWeight: "600" },
     filterBtnTextActive: { color: "#fff" },
-    card: { backgroundColor: "#fff", borderRadius: 16, padding: 14, marginBottom: 10, flexDirection: "row", gap: 12 },
+
+    card: {
+        backgroundColor: "#fff", borderRadius: 16, padding: 14,
+        marginBottom: 10, flexDirection: "row", gap: 12,
+    },
     alertIcon: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
     cardBody: { flex: 1, gap: 4 },
     cardTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
@@ -161,7 +246,11 @@ const styles = StyleSheet.create({
     dateText: { fontSize: 11, color: "#aaa", marginLeft: "auto" },
     resolvedBadge: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6 },
     resolvedText: { fontSize: 12, color: "#27AE60", fontWeight: "600" },
-    resolveBtn: { marginTop: 8, backgroundColor: "#FFF3E0", borderRadius: 8, paddingVertical: 8, alignItems: "center" },
+    resolveBtn: {
+        marginTop: 8, backgroundColor: "#FFF3E0", borderRadius: 8,
+        paddingVertical: 8, paddingHorizontal: 12,
+        flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
+    },
     resolveBtnText: { fontSize: 13, color: "#E65100", fontWeight: "700" },
     empty: { alignItems: "center", padding: 48, gap: 12 },
     emptyText: { fontSize: 14, color: "#aaa" },

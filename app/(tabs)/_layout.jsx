@@ -1,20 +1,17 @@
-import { useEffect, useState } from "react";
-import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+import { useEffect, useState } from "react";
 import { getUser } from "../../src/services/authService";
 
 const GOLD = "#C8960C";
 
+// Admin   : toàn quyền — thấy tất cả tabs
+// Manager : vận hành — thấy stores, alerts, staff, profile
+// Staff   : nhân viên tuyến — chỉ stores và profile
 const TABS_BY_ROLE = {
-    Director: ["index", "stores", "alerts", "staff", "profile"],
-    Deputy_Director: ["index", "stores", "alerts", "staff", "profile"],
-    Sales_Manager: ["index", "stores", "alerts", "staff", "profile"],
-    Sales_Admin: ["index", "stores", "alerts", "staff", "profile"],
-    Sales_Executive: ["index", "stores", "profile"],
-    Warehouse_Manager: ["index", "profile"],
-    Delivery: ["index", "profile"],
-    Accountant: ["index", "profile"],
-    HR_Admin: ["index", "staff", "profile"],
+    Admin: ["index", "stores", "alerts", "staff", "profile"],
+    Manager: ["index", "stores", "alerts", "staff", "profile"],
+    Staff: ["index", "stores", "profile"],
 };
 
 const ALL_TABS = [

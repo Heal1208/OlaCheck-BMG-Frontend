@@ -1,16 +1,25 @@
-import { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from "react-native";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getUser } from "../../src/services/authService";
 import { getAssignedStores } from "../../src/services/storeService";
 
 const GOLD = "#C8960C";
 
-const MENU_PERMISSIONS = {
-  stores: ["Sales_Executive", "Sales_Admin", "Sales_Manager", "Director", "Deputy_Director"],
-  storeSearch: ["Sales_Executive", "Sales_Admin", "Sales_Manager", "Director", "Deputy_Director"],
-  staff: ["Sales_Admin", "Sales_Manager", "Director", "Deputy_Director", "HR_Admin"],
+// Permissions per role
+const CAN_ACCESS = {
+  stores: ["Admin", "Manager", "Staff"],
+  storeSearch: ["Admin", "Manager", "Staff"],
+  alerts: ["Admin", "Manager"],
+  staff: ["Admin", "Manager"],
+};
+
+// Badge color per role
+const ROLE_BADGE = {
+  Admin: { bg: "#FFF0F0", text: "#C0392B", label: "Admin" },
+  Manager: { bg: "#E8F5E9", text: "#27AE60", label: "Manager" },
+  Staff: { bg: "#FFF8E8", text: GOLD, label: "Nhân viên" },
 };
 
 export default function HomeScreen() {
@@ -28,7 +37,8 @@ export default function HomeScreen() {
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={GOLD} /></View>;
 
-  const canAccess = (key) => MENU_PERMISSIONS[key]?.includes(user?.role);
+  const canAccess = (key) => CAN_ACCESS[key]?.includes(user?.role);
+  const roleBadge = ROLE_BADGE[user?.role] || ROLE_BADGE.Staff;
 
   const menuItems = [
     canAccess("stores") && {
@@ -38,6 +48,10 @@ export default function HomeScreen() {
     canAccess("storeSearch") && {
       icon: "search-outline", label: "Store Search",
       sub: "Find any store", color: "#2D9CDB", href: "/stores/search",
+    },
+    canAccess("alerts") && {
+      icon: "warning-outline", label: "Alerts",
+      sub: "Tồn kho & hạn dùng", color: "#E65100", href: "/(tabs)/alerts",
     },
     canAccess("staff") && {
       icon: "people-outline", label: "Staff",
@@ -53,10 +67,10 @@ export default function HomeScreen() {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Good day,</Text>
+          <Text style={styles.greeting}>Xin chào,</Text>
           <Text style={styles.userName}>{user?.full_name}</Text>
-          <View style={styles.roleBadge}>
-            <Text style={styles.roleText}>{user?.role?.replace("_", " ")}</Text>
+          <View style={[styles.roleBadge, { backgroundColor: roleBadge.bg }]}>
+            <Text style={[styles.roleText, { color: roleBadge.text }]}>{roleBadge.label}</Text>
           </View>
         </View>
         <Image
@@ -126,8 +140,8 @@ const styles = StyleSheet.create({
   header: { backgroundColor: GOLD, padding: 24, paddingTop: 56, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   greeting: { fontSize: 14, color: "#ffffff99" },
   userName: { fontSize: 22, fontWeight: "800", color: "#fff", marginTop: 2 },
-  roleBadge: { marginTop: 8, backgroundColor: "#ffffff22", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4, alignSelf: "flex-start" },
-  roleText: { fontSize: 12, color: "#fff", fontWeight: "600" },
+  roleBadge: { marginTop: 8, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4, alignSelf: "flex-start" },
+  roleText: { fontSize: 12, fontWeight: "700" },
   statsRow: { flexDirection: "row", padding: 16, gap: 8 },
   statCard: { flex: 1, backgroundColor: "#fff", borderRadius: 14, padding: 12, alignItems: "center" },
   statNum: { fontSize: 22, fontWeight: "800" },

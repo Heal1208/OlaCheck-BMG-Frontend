@@ -1,12 +1,18 @@
-import { useEffect, useState, useCallback } from "react";
-import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity,
-  ActivityIndicator, RefreshControl, TextInput,
-} from "react-native";
-import { router, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { getAssignedStores } from "../../src/services/storeService";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { getUser } from "../../src/services/authService";
+import { getAssignedStores } from "../../src/services/storeService";
 
 const C = {
   gold: "#C8860A",
@@ -25,12 +31,9 @@ const TYPE_STYLE = {
   agency: { bg: "#E3F2FD", text: "#1565C0" },
 };
 
-const ADMIN_ROLES = ["Sales_Admin", "Sales_Manager", "Director", "Deputy_Director"];
-const SALES_ROLES = ["Sales_Executive", "Sales_Admin", "Sales_Manager", "Director", "Deputy_Director"];
-
 const HDivider = ({ style }) => <View style={[styles.hDivider, style]} />;
 
-const StoreCard = ({ item, isAdmin, isSales }) => {
+const StoreCard = ({ item, canEdit, canCheckin }) => {
   const tc = TYPE_STYLE[item.store_type] || { bg: "#F0F0F0", text: "#666" };
   return (
     <View style={styles.card}>
@@ -66,7 +69,7 @@ const StoreCard = ({ item, isAdmin, isSales }) => {
         </View>
 
         <View style={styles.actionRow}>
-          {isSales && (
+          {canCheckin && (
             <TouchableOpacity
               style={styles.checkinBtn}
               onPress={() => router.push({
@@ -78,7 +81,7 @@ const StoreCard = ({ item, isAdmin, isSales }) => {
               <Text style={styles.checkinBtnText}>Check In</Text>
             </TouchableOpacity>
           )}
-          {isAdmin && (
+          {canEdit && (
             <TouchableOpacity
               style={styles.editBtn}
               onPress={() => router.push({
@@ -124,8 +127,9 @@ export default function StoresScreen() {
     } finally { setLoading(false); setRefreshing(false); }
   };
 
-  const isAdmin = currentUser && ADMIN_ROLES.includes(currentUser.role);
-  const isSales = currentUser && SALES_ROLES.includes(currentUser.role);
+  const role = currentUser?.role;
+  const canEdit = role === "Admin" || role === "Manager";
+  const canCheckin = role === "Admin" || role === "Manager" || role === "Staff";
 
   const typeStats = [
     { label: "Total", value: stores.length },
@@ -149,7 +153,7 @@ export default function StoresScreen() {
             <TouchableOpacity style={styles.headerBtn} onPress={() => router.push("/stores/search")}>
               <Ionicons name="search-outline" size={18} color={C.white} />
             </TouchableOpacity>
-            {isAdmin && (
+            {canEdit && (
               <TouchableOpacity style={styles.headerBtn} onPress={() => router.push("/stores/create")}>
                 <Ionicons name="add" size={20} color={C.white} />
               </TouchableOpacity>
@@ -200,7 +204,9 @@ export default function StoresScreen() {
       <FlatList
         data={filtered}
         keyExtractor={(item) => String(item.store_id)}
-        renderItem={({ item }) => <StoreCard item={item} isAdmin={isAdmin} isSales={isSales} />}
+        renderItem={({ item }) => (
+          <StoreCard item={item} canEdit={canEdit} canCheckin={canCheckin} />
+        )}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
