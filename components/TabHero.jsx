@@ -25,12 +25,14 @@ export default function TabHero({ eyebrow, title, right, children, compact = fal
 
 const styles = StyleSheet.create({
   hero: {
-    backgroundColor: HERO_UI.primary,
-    paddingTop: 28,
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
+  backgroundColor: HERO_UI.primary,
+  height: '40%',
+  paddingTop: 28,
+  paddingHorizontal: 16,
+  paddingBottom: 8,
+  borderBottomLeftRadius: 28,
+  borderBottomRightRadius: 28,
+  justifyContent: "space-between",
   },
   topRow: {
     minHeight: 34,
@@ -38,13 +40,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
+    width: "100%",
   },
   topRowCompact: {
     minHeight: 30,
   },
   titleWrap: {
-    flex: 1,
+    flex: 2,
     justifyContent: "center",
+    alignItems: "flex-start",
   },
   eyebrow: {
     fontSize: 10,
@@ -57,16 +61,19 @@ const styles = StyleSheet.create({
     color: HERO_UI.textLight,
   },
   rightWrap: {
+    flex: 1,
     minWidth: 42,
     minHeight: 34,
     alignItems: "flex-end",
     justifyContent: "center",
   },
   rightSpacer: {
+    flex: 1,
     width: 42,
     height: 34,
   },
   content: {
     marginTop: 6,
+    width: "100%",
   },
 });
