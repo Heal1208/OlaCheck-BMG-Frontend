@@ -8,7 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { createStaff, getRoles } from "../../src/services/staffService";
 import AlertBox, { useAlert } from "../../components/AlertBox";
 
-const GOLD = "#C8960C";
+const GOLD = "#E7DA66";
 
 export default function CreateStaffScreen() {
     const [form, setForm] = useState({ full_name: "", email: "", phone: "", password: "", role_id: null });

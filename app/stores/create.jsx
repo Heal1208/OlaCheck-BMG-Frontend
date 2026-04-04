@@ -9,7 +9,7 @@ import { createStore } from "../../src/services/storeService";
 import { getStaffList } from "../../src/services/staffService";
 import AlertBox, { useAlert } from "../../components/AlertBox";
 
-const GOLD = "#C8960C";
+const GOLD = "#E7DA66";
 const STORE_TYPES = ["grocery", "supermarket", "agency"];
 
 export default function CreateStoreScreen() {

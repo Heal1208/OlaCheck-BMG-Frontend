@@ -1,135 +1,296 @@
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { useState } from "react";
 import {
-    View, Text, TextInput, TouchableOpacity,
-    StyleSheet, ActivityIndicator, Image,
-    KeyboardAvoidingView, Platform, ScrollView,
+  ActivityIndicator,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { login, saveSession } from "../../src/services/authService";
 import AlertBox, { useAlert } from "../../components/AlertBox";
+import { login, saveSession } from "../../src/services/authService";
 
-const GOLD = "#C8960C";
+const UI = {
+  primary: "#E7DA66",
+  primaryDark: "#C6B83C",
+  primarySoft: "#F6F1B4",
+  background: "#F6F7FB",
+  card: "#FFFFFF",
+  text: "#24324A",
+  muted: "#7B8798",
+  border: "#E9EDF5",
+};
 
 export default function LoginScreen() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [showPw, setShowPw] = useState(false);
-    const [keepSignedIn, setKeep] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const { alertConfig, showAlert, hideAlert } = useAlert();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [keepSignedIn, setKeep] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { alertConfig, showAlert, hideAlert } = useAlert();
 
-    const handleLogin = async () => {
-        if (!email.trim() || !password.trim()) {
-            showAlert("Error", "Please enter your email and password."); return;
-        }
-        setLoading(true);
-        try {
-            const result = await login(email.trim(), password);
-            if (result.success) {
-                await saveSession(result.data.token, result.data.user);
-                router.replace("/(tabs)");
-            } else {
-                showAlert("Sign In Failed", result.message);
-            }
-        } catch {
-            showAlert("Connection Error", "Cannot connect to server. Check your network.");
-        } finally { setLoading(false); }
-    };
+  const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      showAlert("Error", "Please enter your email and password.");
+      return;
+    }
 
-    return (
-        <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-            <AlertBox config={alertConfig} onHide={hideAlert} />
-            <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-                <View style={styles.logoWrap}>
-                    <Image
-                        source={require("../../assets/images/logo.jpg")}
-                        style={{ width: 64, height: 64, borderRadius: 16 }}
-                        resizeMode="contain"
-                    />
-                    <Text style={styles.appName}>OlaCheck-BMG</Text>
-                    <Text style={styles.appSub}>Smart Retail Management</Text>
-                </View>
+    setLoading(true);
+    try {
+      const result = await login(email.trim(), password);
+      if (result.success) {
+        await saveSession(result.data.token, result.data.user);
+        router.replace("/(tabs)");
+      } else {
+        showAlert("Sign In Failed", result.message);
+      }
+    } catch {
+      showAlert("Connection Error", "Cannot connect to server. Check your network.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                <Text style={styles.title}>Sign In</Text>
-                <Text style={styles.subtitle}>Access your retail management dashboard</Text>
+  return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <AlertBox config={alertConfig} onHide={hideAlert} />
 
-                <View style={styles.inputWrap}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Email Address"
-                        placeholderTextColor="#aaa"
-                        value={email}
-                        onChangeText={setEmail}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                    />
-                </View>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <View style={styles.hero}>
+          <View style={styles.logoWrap}>
+            <Image
+              source={require("../../assets/images/olasun-leaf.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
+          <Text style={styles.heroTitle}>OlaCheck-BMG</Text>
+          <Text style={styles.heroSub}>Smart retail operations, unified in one place.</Text>
+        </View>
 
-                <View style={styles.inputWrap}>
-                    <TextInput
-                        style={[styles.input, { paddingRight: 48 }]}
-                        placeholder="Password"
-                        placeholderTextColor="#aaa"
-                        value={password}
-                        onChangeText={setPassword}
-                        secureTextEntry={!showPw}
-                    />
-                    <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowPw(!showPw)}>
-                        <Ionicons name={showPw ? "eye-outline" : "eye-off-outline"} size={20} color="#aaa" />
-                    </TouchableOpacity>
-                </View>
+        <View style={styles.card}>
+          <Text style={styles.title}>Sign In</Text>
+          <Text style={styles.subtitle}>Access your dashboard and manage daily operations.</Text>
 
-                <View style={styles.row}>
-                    <TouchableOpacity style={styles.checkRow} onPress={() => setKeep(!keepSignedIn)}>
-                        <View style={[styles.checkbox, keepSignedIn && styles.checkboxActive]}>
-                            {keepSignedIn && <Ionicons name="checkmark" size={12} color="#fff" />}
-                        </View>
-                        <Text style={styles.checkLabel}>Keep me signed in</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => router.push("/auth/recovery")}>
-                        <Text style={styles.forgotText}>Forgot password?</Text>
-                    </TouchableOpacity>
-                </View>
+          <View style={styles.inputWrap}>
+            <Ionicons name="mail-outline" size={18} color={UI.muted} />
+            <TextInput
+              style={styles.input}
+              placeholder="Email Address"
+              placeholderTextColor="#A9B3C3"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
 
-                <TouchableOpacity
-                    style={[styles.signInBtn, loading && { opacity: 0.7 }]}
-                    onPress={handleLogin}
-                    disabled={loading}
-                >
-                    {loading
-                        ? <ActivityIndicator color="#fff" />
-                        : <Text style={styles.signInText}>Sign In to Dashboard</Text>
-                    }
-                </TouchableOpacity>
+          <View style={styles.inputWrap}>
+            <Ionicons name="lock-closed-outline" size={18} color={UI.muted} />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor="#A9B3C3"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPw}
+            />
+            <TouchableOpacity onPress={() => setShowPw((value) => !value)}>
+              <Ionicons name={showPw ? "eye-outline" : "eye-off-outline"} size={18} color={UI.muted} />
+            </TouchableOpacity>
+          </View>
 
-                <Text style={styles.secureText}>
-                    Protected by enterprise-grade security. Your data is encrypted and secure.
-                </Text>
-            </ScrollView>
-        </KeyboardAvoidingView>
-    );
+          <View style={styles.row}>
+            <TouchableOpacity style={styles.checkRow} onPress={() => setKeep((value) => !value)}>
+              <View style={[styles.checkbox, keepSignedIn && styles.checkboxActive]}>
+                {keepSignedIn && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
+              </View>
+              <Text style={styles.checkLabel}>Keep me signed in</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => router.push("/auth/recovery")}>
+              <Text style={styles.linkText}>Forgot password?</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.primaryButtonText}>Sign In</Text>}
+          </TouchableOpacity>
+
+          <View style={styles.noteCard}>
+            <Ionicons name="shield-checkmark-outline" size={18} color={UI.primaryDark} />
+            <Text style={styles.noteText}>
+              Protected by enterprise-grade security. Your data stays encrypted in transit.
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#fff" },
-    scroll: { padding: 24, paddingBottom: 40 },
-    logoWrap: { alignItems: "center", marginTop: 32, marginBottom: 32 },
-    appName: { fontSize: 20, fontWeight: "700", color: "#111", marginTop: 12 },
-    appSub: { fontSize: 13, color: "#888", marginTop: 2 },
-    title: { fontSize: 28, fontWeight: "800", color: "#111", marginBottom: 6 },
-    subtitle: { fontSize: 14, color: "#888", marginBottom: 24 },
-    inputWrap: { position: "relative", marginBottom: 14 },
-    input: { backgroundColor: "#f4f4f4", borderRadius: 12, paddingHorizontal: 16, paddingVertical: 16, fontSize: 15, color: "#111" },
-    eyeBtn: { position: "absolute", right: 14, top: 0, bottom: 0, justifyContent: "center" },
-    row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
-    checkRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-    checkbox: { width: 18, height: 18, borderWidth: 1.5, borderColor: "#ccc", borderRadius: 4, alignItems: "center", justifyContent: "center" },
-    checkboxActive: { backgroundColor: GOLD, borderColor: GOLD },
-    checkLabel: { fontSize: 13, color: "#444" },
-    forgotText: { fontSize: 13, color: GOLD, fontWeight: "600" },
-    signInBtn: { backgroundColor: GOLD, borderRadius: 14, paddingVertical: 18, alignItems: "center", marginBottom: 28 },
-    signInText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-    secureText: { fontSize: 12, color: "#aaa", textAlign: "center", lineHeight: 18 },
+  container: {
+    flex: 1,
+    backgroundColor: UI.background,
+  },
+  scroll: {
+    flexGrow: 1,
+    padding: 18,
+    paddingTop: 28,
+    paddingBottom: 28,
+  },
+  hero: {
+    backgroundColor: UI.primary,
+    borderRadius: 28,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  logoWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 24,
+    backgroundColor: "rgba(255,255,255,0.28)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+  },
+  logo: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+  },
+  heroTitle: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#5B5214",
+  },
+  heroSub: {
+    marginTop: 6,
+    fontSize: 13,
+    lineHeight: 19,
+    color: "#FFFCE7",
+    textAlign: "center",
+  },
+  card: {
+    backgroundColor: UI.card,
+    borderRadius: 24,
+    padding: 18,
+    shadowColor: "#D9DEE8",
+    shadowOpacity: 0.28,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: UI.text,
+  },
+  subtitle: {
+    marginTop: 6,
+    marginBottom: 18,
+    fontSize: 13,
+    lineHeight: 19,
+    color: UI.muted,
+  },
+  inputWrap: {
+    minHeight: 50,
+    borderRadius: 16,
+    backgroundColor: "#F7F9FC",
+    borderWidth: 1,
+    borderColor: UI.border,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: 14,
+    color: UI.text,
+    paddingVertical: 13,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 18,
+  },
+  checkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+  },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 5,
+    borderWidth: 1.5,
+    borderColor: "#C9D2E3",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxActive: {
+    backgroundColor: UI.primaryDark,
+    borderColor: UI.primaryDark,
+  },
+  checkLabel: {
+    fontSize: 13,
+    color: UI.muted,
+  },
+  linkText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: UI.primaryDark,
+  },
+  primaryButton: {
+    minHeight: 50,
+    borderRadius: 16,
+    backgroundColor: UI.primaryDark,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  primaryButtonDisabled: {
+    opacity: 0.7,
+  },
+  primaryButtonText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  noteCard: {
+    marginTop: 16,
+    borderRadius: 16,
+    backgroundColor: UI.primarySoft,
+    padding: 14,
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "flex-start",
+  },
+  noteText: {
+    flex: 1,
+    fontSize: 12,
+    lineHeight: 18,
+    color: UI.text,
+  },
 });

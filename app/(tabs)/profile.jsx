@@ -1,14 +1,31 @@
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  View, Text, StyleSheet, TouchableOpacity, TextInput,
-  ActivityIndicator, ScrollView,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { getUser, changePassword, logout, clearSession } from "../../src/services/authService";
 import AlertBox, { useAlert } from "../../components/AlertBox";
+import TabHero from "../../components/TabHero";
+import { changePassword, clearSession, getUser, logout } from "../../src/services/authService";
 
-const GOLD = "#C8960C";
+const UI = {
+  primary: "#E7DA66",
+  primaryDark: "#C6B83C",
+  primarySoft: "#F6F1B4",
+  background: "#F6F7FB",
+  card: "#FFFFFF",
+  text: "#24324A",
+  muted: "#7B8798",
+  border: "#E9EDF5",
+  success: "#29B36A",
+  danger: "#FF5B5B",
+};
 
 export default function ProfileScreen() {
   const [user, setUser] = useState(null);
@@ -21,41 +38,59 @@ export default function ProfileScreen() {
   const [showNew, setShowNew] = useState(false);
   const { alertConfig, showAlert, hideAlert } = useAlert();
 
-  useEffect(() => { getUser().then(setUser); }, []);
+  useEffect(() => {
+    getUser().then(setUser);
+  }, []);
 
   const handleChangePassword = async () => {
     if (!currentPw || !newPw || !confirmPw) {
-      showAlert("Error", "Please fill in all fields."); return;
+      showAlert("Error", "Please fill in all fields.");
+      return;
     }
     if (newPw !== confirmPw) {
-      showAlert("Error", "New passwords do not match."); return;
+      showAlert("Error", "New passwords do not match.");
+      return;
     }
     if (newPw.length < 8) {
-      showAlert("Error", "New password must be at least 8 characters."); return;
+      showAlert("Error", "New password must be at least 8 characters.");
+      return;
     }
+
     setLoading(true);
     try {
-      const r = await changePassword(currentPw, newPw);
-      if (r.success) {
-        showAlert("Success", "Password changed successfully.", [{
-          text: "OK",
-          onPress: () => { setShowForm(false); setCurrentPw(""); setNewPw(""); setConfirmPw(""); }
-        }]);
+      const result = await changePassword(currentPw, newPw);
+      if (result.success) {
+        showAlert("Success", "Password changed successfully.", [
+          {
+            text: "OK",
+            onPress: () => {
+              setShowForm(false);
+              setCurrentPw("");
+              setNewPw("");
+              setConfirmPw("");
+            },
+          },
+        ]);
       } else {
-        showAlert("Failed", r.message);
+        showAlert("Failed", result.message);
       }
     } catch {
       showAlert("Error", "Cannot connect to server.");
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleLogout = () => {
     showAlert("Sign Out", "Are you sure you want to sign out?", [
       { text: "Cancel", style: "cancel" },
       {
-        text: "Sign Out", style: "destructive",
+        text: "Sign Out",
+        style: "destructive",
         onPress: async () => {
-          try { await logout(); } catch { }
+          try {
+            await logout();
+          } catch {}
           await clearSession();
           router.replace("/auth/login");
         },
@@ -63,36 +98,44 @@ export default function ProfileScreen() {
     ]);
   };
 
-  if (!user) return <View style={styles.center}><ActivityIndicator color={GOLD} /></View>;
+  if (!user) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator color={UI.primary} />
+      </View>
+    );
+  }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <AlertBox config={alertConfig} onHide={hideAlert} />
-      <View style={styles.headerBg}>
-        <Text style={styles.headerTitle}>Profile</Text>
-      </View>
-      <View style={styles.avatarWrap}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarLetter}>{user.full_name?.[0]}</Text>
+
+      <TabHero eyebrow="Account" title="Profile">
+        <View style={styles.profileCard}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarLetter}>{user.full_name?.[0]}</Text>
+          </View>
+          <Text style={styles.name}>{user.full_name}</Text>
+          <Text style={styles.email}>{user.email}</Text>
+          <View style={styles.roleBadge}>
+            <Text style={styles.roleText}>{user.role?.replace("_", " ")}</Text>
+          </View>
         </View>
-        <Text style={styles.name}>{user.full_name}</Text>
-        <View style={styles.roleBadge}>
-          <Text style={styles.roleText}>{user.role?.replace("_", " ")}</Text>
-        </View>
-      </View>
+      </TabHero>
+
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>ACCOUNT INFO</Text>
+        <Text style={styles.sectionTitle}>Account Info</Text>
         <View style={styles.card}>
           {[
             { icon: "person-outline", label: "Full Name", value: user.full_name },
             { icon: "mail-outline", label: "Email", value: user.email },
-            { icon: "shield-outline", label: "Role", value: user.role?.replace("_", " ") },
-          ].map((item, i) => (
-            <View key={item.label} style={[styles.infoRow, i > 0 && styles.borderTop]}>
+            { icon: "shield-checkmark-outline", label: "Role", value: user.role?.replace("_", " ") },
+          ].map((item) => (
+            <View key={item.label} style={styles.infoRow}>
               <View style={styles.infoIcon}>
-                <Ionicons name={item.icon} size={16} color={GOLD} />
+                <Ionicons name={item.icon} size={18} color={UI.primaryDark} />
               </View>
-              <View>
+              <View style={styles.infoBody}>
                 <Text style={styles.infoLabel}>{item.label}</Text>
                 <Text style={styles.infoValue}>{item.value}</Text>
               </View>
@@ -100,76 +143,261 @@ export default function ProfileScreen() {
           ))}
         </View>
       </View>
+
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>SECURITY</Text>
-        <TouchableOpacity style={[styles.card, styles.actionRow]} onPress={() => setShowForm(!showForm)}>
+        <Text style={styles.sectionTitle}>Security</Text>
+        <TouchableOpacity style={styles.actionCard} onPress={() => setShowForm((value) => !value)}>
           <View style={styles.actionLeft}>
-            <View style={[styles.actionIcon, { backgroundColor: "#E8F5E9" }]}>
-              <Ionicons name="lock-closed-outline" size={18} color="#27AE60" />
+            <View style={styles.infoIcon}>
+              <Ionicons name="lock-closed-outline" size={18} color={UI.primaryDark} />
             </View>
             <Text style={styles.actionLabel}>Change Password</Text>
           </View>
-          <Ionicons name={showForm ? "chevron-up" : "chevron-down"} size={18} color="#aaa" />
+          <Ionicons
+            name={showForm ? "chevron-up-outline" : "chevron-down-outline"}
+            size={18}
+            color={UI.muted}
+          />
         </TouchableOpacity>
+
         {showForm && (
-          <View style={[styles.card, { marginTop: 10, gap: 12 }]}>
-            <View style={styles.pwRow}>
-              <TextInput style={styles.pwInput} placeholder="Current Password" placeholderTextColor="#aaa" secureTextEntry={!showCur} value={currentPw} onChangeText={setCurrentPw} />
-              <TouchableOpacity onPress={() => setShowCur(!showCur)}>
-                <Ionicons name={showCur ? "eye-outline" : "eye-off-outline"} size={18} color="#aaa" />
+          <View style={styles.card}>
+            <View style={styles.inputRow}>
+              <TextInput
+                style={styles.input}
+                placeholder="Current Password"
+                placeholderTextColor="#A9B3C3"
+                secureTextEntry={!showCur}
+                value={currentPw}
+                onChangeText={setCurrentPw}
+              />
+              <TouchableOpacity onPress={() => setShowCur((value) => !value)}>
+                <Ionicons name={showCur ? "eye-outline" : "eye-off-outline"} size={18} color={UI.muted} />
               </TouchableOpacity>
             </View>
-            <View style={styles.pwRow}>
-              <TextInput style={styles.pwInput} placeholder="New Password (min 8)" placeholderTextColor="#aaa" secureTextEntry={!showNew} value={newPw} onChangeText={setNewPw} />
-              <TouchableOpacity onPress={() => setShowNew(!showNew)}>
-                <Ionicons name={showNew ? "eye-outline" : "eye-off-outline"} size={18} color="#aaa" />
+
+            <View style={styles.inputRow}>
+              <TextInput
+                style={styles.input}
+                placeholder="New Password"
+                placeholderTextColor="#A9B3C3"
+                secureTextEntry={!showNew}
+                value={newPw}
+                onChangeText={setNewPw}
+              />
+              <TouchableOpacity onPress={() => setShowNew((value) => !value)}>
+                <Ionicons name={showNew ? "eye-outline" : "eye-off-outline"} size={18} color={UI.muted} />
               </TouchableOpacity>
             </View>
-            <View style={styles.pwRow}>
-              <TextInput style={styles.pwInput} placeholder="Confirm New Password" placeholderTextColor="#aaa" secureTextEntry value={confirmPw} onChangeText={setConfirmPw} />
+
+            <View style={styles.inputRow}>
+              <TextInput
+                style={styles.input}
+                placeholder="Confirm New Password"
+                placeholderTextColor="#A9B3C3"
+                secureTextEntry
+                value={confirmPw}
+                onChangeText={setConfirmPw}
+              />
             </View>
-            <TouchableOpacity style={[styles.saveBtn, loading && { opacity: 0.7 }]} onPress={handleChangePassword} disabled={loading}>
-              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveBtnText}>Update Password</Text>}
+
+            <TouchableOpacity
+              style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+              onPress={handleChangePassword}
+              disabled={loading}
+            >
+              {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.saveButtonText}>Update Password</Text>}
             </TouchableOpacity>
           </View>
         )}
       </View>
-      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-        <Ionicons name="log-out-outline" size={18} color="#E53935" />
+
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Ionicons name="log-out-outline" size={18} color={UI.danger} />
         <Text style={styles.logoutText}>Sign Out</Text>
       </TouchableOpacity>
-      <View style={{ height: 40 }} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f8f8" },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  headerBg: { backgroundColor: GOLD, paddingTop: 52, paddingBottom: 64, paddingHorizontal: 20 },
-  headerTitle: { fontSize: 20, fontWeight: "800", color: "#fff" },
-  avatarWrap: { alignItems: "center", marginTop: -40, marginBottom: 24 },
-  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: GOLD, alignItems: "center", justifyContent: "center", borderWidth: 4, borderColor: "#fff" },
-  avatarLetter: { fontSize: 36, fontWeight: "800", color: "#fff" },
-  name: { fontSize: 20, fontWeight: "800", color: "#111", marginTop: 10 },
-  roleBadge: { marginTop: 6, backgroundColor: "#FFF8E8", borderRadius: 20, paddingHorizontal: 14, paddingVertical: 5 },
-  roleText: { fontSize: 13, color: GOLD, fontWeight: "600" },
-  section: { paddingHorizontal: 16, marginBottom: 16 },
-  sectionLabel: { fontSize: 11, fontWeight: "700", color: "#888", letterSpacing: 1, marginBottom: 8 },
-  card: { backgroundColor: "#fff", borderRadius: 16, overflow: "hidden", padding: 14 },
-  infoRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10 },
-  borderTop: { borderTopWidth: 1, borderTopColor: "#f5f5f5" },
-  infoIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: "#FFF8E8", alignItems: "center", justifyContent: "center" },
-  infoLabel: { fontSize: 11, color: "#888" },
-  infoValue: { fontSize: 14, fontWeight: "600", color: "#111", marginTop: 1 },
-  actionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  actionLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
-  actionIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
-  actionLabel: { fontSize: 14, fontWeight: "600", color: "#111" },
-  pwRow: { flexDirection: "row", alignItems: "center", backgroundColor: "#f4f4f4", borderRadius: 10, paddingHorizontal: 14 },
-  pwInput: { flex: 1, paddingVertical: 13, fontSize: 14, color: "#111" },
-  saveBtn: { backgroundColor: GOLD, borderRadius: 10, paddingVertical: 14, alignItems: "center" },
-  saveBtnText: { color: "#fff", fontSize: 14, fontWeight: "700" },
-  logoutBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, margin: 16, backgroundColor: "#fff", borderRadius: 14, padding: 16, borderWidth: 1, borderColor: "#FFEBEE" },
-  logoutText: { fontSize: 15, fontWeight: "700", color: "#E53935" },
+  container: {
+    flex: 1,
+    backgroundColor: UI.background,
+  },
+  content: {
+    paddingBottom: 118,
+  },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: UI.background,
+  },
+  profileCard: {
+    backgroundColor: "rgba(255,255,255,0.16)",
+    borderRadius: 22,
+    alignItems: "center",
+    paddingVertical: 22,
+    paddingHorizontal: 16,
+  },
+  avatar: {
+    width: 86,
+    height: 86,
+    borderRadius: 30,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarLetter: {
+    fontSize: 34,
+    fontWeight: "800",
+    color: UI.primaryDark,
+  },
+  name: {
+    marginTop: 14,
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#5B5214",
+    textAlign: "center",
+  },
+  email: {
+    marginTop: 4,
+    fontSize: 13,
+    color: "#FFFCE7",
+    textAlign: "center",
+  },
+  roleBadge: {
+    marginTop: 12,
+    borderRadius: 999,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  roleText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: UI.primaryDark,
+  },
+  section: {
+    paddingHorizontal: 16,
+    marginTop: 18,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: UI.text,
+    marginBottom: 12,
+  },
+  card: {
+    backgroundColor: UI.card,
+    borderRadius: 20,
+    padding: 15,
+    shadowColor: "#D9DEE8",
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 5,
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 10,
+  },
+  infoIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: UI.primarySoft,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  infoBody: {
+    flex: 1,
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: UI.muted,
+  },
+  infoValue: {
+    marginTop: 3,
+    fontSize: 14,
+    fontWeight: "700",
+    color: UI.text,
+  },
+  actionCard: {
+    backgroundColor: UI.card,
+    borderRadius: 20,
+    padding: 15,
+    marginBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    shadowColor: "#D9DEE8",
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 5,
+  },
+  actionLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  actionLabel: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: UI.text,
+  },
+  inputRow: {
+    minHeight: 48,
+    borderRadius: 16,
+    backgroundColor: "#F7F9FC",
+    borderWidth: 1,
+    borderColor: UI.border,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 14,
+    marginBottom: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: 14,
+    color: UI.text,
+    paddingVertical: 13,
+  },
+  saveButton: {
+    minHeight: 46,
+    borderRadius: 16,
+    backgroundColor: UI.primaryDark,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  saveButtonDisabled: {
+    opacity: 0.7,
+  },
+  saveButtonText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  logoutButton: {
+    marginTop: 18,
+    marginHorizontal: 16,
+    minHeight: 50,
+    borderRadius: 18,
+    backgroundColor: "#FFF1F1",
+    borderWidth: 1,
+    borderColor: "#FFD8D8",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  logoutText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: UI.danger,
+  },
 });

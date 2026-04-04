@@ -1,13 +1,35 @@
 import { Ionicons } from "@expo/vector-icons";
+import { StatusBar } from "expo-status-bar";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import TabHero from "../../components/TabHero";
 import { getUser } from "../../src/services/authService";
 import { getAssignedStores } from "../../src/services/storeService";
 
-const GOLD = "#C8960C";
+const UI = {
+  primary: "#E7DA66",
+  primaryDark: "#C6B83C",
+  primarySoft: "#F6F1B4",
+  background: "#F6F7FB",
+  card: "#FFFFFF",
+  text: "#24324A",
+  muted: "#7B8798",
+  success: "#29B36A",
+  danger: "#FF8A00",
+  border: "#E9EDF5",
+  shadow: "#D9DEE8",
+};
 
-// Permissions per role
 const CAN_ACCESS = {
   stores: ["Admin", "Manager", "Staff"],
   storeSearch: ["Admin", "Manager", "Staff"],
@@ -15,11 +37,10 @@ const CAN_ACCESS = {
   staff: ["Admin", "Manager"],
 };
 
-// Badge color per role
 const ROLE_BADGE = {
-  Admin: { bg: "#FFF0F0", text: "#C0392B", label: "Admin" },
-  Manager: { bg: "#E8F5E9", text: "#27AE60", label: "Manager" },
-  Staff: { bg: "#FFF8E8", text: GOLD, label: "Nhân viên" },
+  Admin: { bg: "#FFFBE0", text: "#8A7E18", label: "Admin" },
+  Manager: { bg: "#FFFBE0", text: "#8A7E18", label: "Manager" },
+  Staff: { bg: "#FFFBE0", text: "#8A7E18", label: "Staff" },
 };
 
 export default function HomeScreen() {
@@ -30,133 +51,493 @@ export default function HomeScreen() {
   useEffect(() => {
     Promise.all([getUser(), getAssignedStores()]).then(([u, s]) => {
       setUser(u);
-      if (s.success) setStores(s.data.stores);
+      if (s.success) {
+        setStores(s.data.stores);
+      }
       setLoading(false);
     });
   }, []);
 
-  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={GOLD} /></View>;
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <StatusBar style="dark" />
+        <ActivityIndicator size="large" color={UI.primary} />
+      </View>
+    );
+  }
 
   const canAccess = (key) => CAN_ACCESS[key]?.includes(user?.role);
   const roleBadge = ROLE_BADGE[user?.role] || ROLE_BADGE.Staff;
+  const groceryCount = stores.filter((store) => store.store_type === "grocery").length;
+  const supermarketCount = stores.filter((store) => store.store_type === "supermarket").length;
+  const agencyCount = stores.filter((store) => store.store_type === "agency").length;
+  const alertCount = Math.max(agencyCount, 1);
+  const greetingName = user?.full_name || "User";
 
-  const menuItems = [
-    canAccess("stores") && {
-      icon: "storefront-outline", label: "My Stores",
-      sub: `${stores.length} assigned`, color: GOLD, href: "/(tabs)/stores",
-    },
-    canAccess("storeSearch") && {
-      icon: "search-outline", label: "Store Search",
-      sub: "Find any store", color: "#2D9CDB", href: "/stores/search",
-    },
-    canAccess("alerts") && {
-      icon: "warning-outline", label: "Alerts",
-      sub: "Tồn kho & hạn dùng", color: "#E65100", href: "/(tabs)/alerts",
-    },
-    canAccess("staff") && {
-      icon: "people-outline", label: "Staff",
-      sub: "Manage accounts", color: "#27AE60", href: "/(tabs)/staff",
+  const stats = [
+    {
+      label: "Stores",
+      value: stores.length,
+      icon: "storefront-outline",
+      change: `+${Math.max(stores.length, 1)} active`,
     },
     {
-      icon: "person-outline", label: "Profile",
-      sub: "Account settings", color: "#F2994A", href: "/(tabs)/profile",
+      label: "Grocery",
+      value: groceryCount,
+      icon: "basket-outline",
+      change: `+${Math.max(groceryCount, 1)} checked`,
+    },
+    {
+      label: "Supermarket",
+      value: supermarketCount,
+      icon: "cart-outline",
+      change: `+${Math.max(supermarketCount, 1)} ready`,
+    },
+    {
+      label: "Agency",
+      value: agencyCount,
+      icon: "business-outline",
+      change: `+${Math.max(agencyCount, 1)} online`,
+    },
+  ];
+
+  const quickActions = [
+    canAccess("stores") && {
+      label: "My Stores",
+      icon: "storefront-outline",
+      href: "/(tabs)/stores",
+    },
+    canAccess("storeSearch") && {
+      label: "Search",
+      icon: "search-outline",
+      href: "/stores/search",
+    },
+    canAccess("alerts") && {
+      label: "Alerts",
+      icon: "notifications-outline",
+      href: "/(tabs)/alerts",
+    },
+    canAccess("staff") && {
+      label: "Staff",
+      icon: "people-outline",
+      href: "/(tabs)/staff",
+    },
+    {
+      label: "Profile",
+      icon: "person-outline",
+      href: "/(tabs)/profile",
     },
   ].filter(Boolean);
+  const shouldShowQuickActions = quickActions.length > 1;
+
+  const highlightStores = stores.slice(0, 3);
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Xin chào,</Text>
-          <Text style={styles.userName}>{user?.full_name}</Text>
-          <View style={[styles.roleBadge, { backgroundColor: roleBadge.bg }]}>
-            <Text style={[styles.roleText, { color: roleBadge.text }]}>{roleBadge.label}</Text>
+    <View style={styles.screen}>
+      <StatusBar style="light" />
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <TabHero
+          eyebrow="Dashboard"
+          title="Home"
+          right={(
+            <TouchableOpacity
+              style={styles.notifyButton}
+              onPress={() => (canAccess("alerts") ? router.push("/(tabs)/alerts") : router.push("/(tabs)/profile"))}
+            >
+              <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
+              {canAccess("alerts") && <View style={styles.notifyDot} />}
+            </TouchableOpacity>
+          )}
+        >
+          <View style={styles.welcomeCard}>
+            <View style={styles.heroIdentity}>
+              <View style={styles.logoWrap}>
+                <Image
+                source={require("../../assets/images/olasun-leaf.png")}
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.heroTextWrap}>
+                <Text style={styles.heroGreeting}>Hello,</Text>
+                <Text style={styles.heroName} numberOfLines={1}>
+                  {greetingName}
+                </Text>
+                <View style={[styles.roleBadge, { backgroundColor: roleBadge.bg }]}>
+                  <Text style={[styles.roleText, { color: roleBadge.text }]}>
+                    {roleBadge.label}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.9}
+              style={styles.searchBar}
+              onPress={() => router.push(canAccess("storeSearch") ? "/stores/search" : "/(tabs)/stores")}
+            >
+              <Ionicons name="search-outline" size={18} color="##E7DA66" />
+              <TextInput
+                editable={false}
+                pointerEvents="none"
+                value=""
+                placeholder="Search stores, staff, alerts..."
+                placeholderTextColor="##E7DA66"
+                style={styles.searchInput}
+              />
+            </TouchableOpacity>
+          </View>
+        </TabHero>
+
+        <View style={styles.section}>
+          <View style={styles.statsGrid}>
+            {stats.map((item) => (
+              <View key={item.label} style={styles.statCard}>
+                <View style={styles.statIconWrap}>
+                  <Ionicons name={item.icon} size={18} color={UI.primaryDark} />
+                </View>
+                <Text style={styles.statLabel}>{item.label}</Text>
+                <Text style={styles.statValue}>{item.value}</Text>
+                <Text style={styles.statChange}>{item.change}</Text>
+              </View>
+            ))}
           </View>
         </View>
-        <Image
-          source={require("../../assets/images/logo.jpg")}
-          style={{ width: 64, height: 64, borderRadius: 16 }}
-          resizeMode="contain"
-        />
-      </View>
 
-      {canAccess("stores") && (
-        <View style={styles.statsRow}>
-          {[
-            { label: "Total", value: stores.length, color: "#111" },
-            { label: "Grocery", value: stores.filter(s => s.store_type === "grocery").length, color: "#F57C00" },
-            { label: "Supermarket", value: stores.filter(s => s.store_type === "supermarket").length, color: "#2E7D32" },
-            { label: "Agency", value: stores.filter(s => s.store_type === "agency").length, color: "#1565C0" },
-          ].map((s) => (
-            <View key={s.label} style={styles.statCard}>
-              <Text style={[styles.statNum, { color: s.color }]}>{s.value}</Text>
-              <Text style={styles.statLabel}>{s.label}</Text>
+        {shouldShowQuickActions && (
+          <View style={styles.section}>
+            <View style={styles.quickCard}>
+              <Text style={styles.quickTitle}>Quick Actions</Text>
+              <View style={styles.quickGrid}>
+                {quickActions.slice(0, 4).map((item) => (
+                  <TouchableOpacity
+                    key={item.label}
+                    style={styles.quickAction}
+                    onPress={() => router.push(item.href)}
+                  >
+                    <Ionicons name={item.icon} size={22} color="#FFFFFF" />
+                    <Text style={styles.quickActionLabel}>{item.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
-          ))}
+          </View>
+        )}
+
+        <View style={styles.section}>
+          <View style={styles.noticeCard}>
+            <View style={styles.noticeHeader}>
+              <View style={styles.noticeTitleWrap}>
+                <Ionicons name="alert-circle-outline" size={18} color={UI.danger} />
+                <Text style={styles.noticeTitle}>Need Attention</Text>
+              </View>
+              <View style={styles.noticeDot} />
+            </View>
+
+            {highlightStores.length > 0 ? (
+              highlightStores.map((store) => (
+                <TouchableOpacity
+                  key={store.store_id}
+                  style={styles.noticeItem}
+                  onPress={() => router.push("/(tabs)/stores")}
+                >
+                  <View>
+                    <Text style={styles.noticeItemTitle} numberOfLines={1}>
+                      {store.store_name}
+                    </Text>
+                    <Text style={styles.noticeItemMeta} numberOfLines={1}>
+                      {store.district}, {store.city}
+                    </Text>
+                  </View>
+                  <View style={styles.noticeBadge}>
+                    <Text style={styles.noticeBadgeText}>{alertCount}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={styles.noticeEmpty}>
+                <Text style={styles.noticeEmptyTitle}>No store data yet</Text>
+                <Text style={styles.noticeEmptyText}>
+                  Assigned stores will show up here for quick review.
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
-      )}
-
-      <Text style={styles.sectionTitle}>Quick Access</Text>
-      <View style={styles.menuGrid}>
-        {menuItems.map((item) => (
-          <TouchableOpacity key={item.label} style={styles.menuCard} onPress={() => router.push(item.href)}>
-            <View style={[styles.menuIcon, { backgroundColor: item.color + "18" }]}>
-              <Ionicons name={item.icon} size={26} color={item.color} />
-            </View>
-            <Text style={styles.menuLabel}>{item.label}</Text>
-            <Text style={styles.menuSub}>{item.sub}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {canAccess("stores") && stores.length > 0 && (
-        <>
-          <Text style={styles.sectionTitle}>Recent Stores</Text>
-          {stores.slice(0, 3).map((store) => (
-            <View key={store.store_id} style={styles.storeCard}>
-              <View style={styles.storeIcon}>
-                <Ionicons name="storefront-outline" size={20} color={GOLD} />
-              </View>
-              <View style={styles.storeInfo}>
-                <Text style={styles.storeName}>{store.store_name}</Text>
-                <Text style={styles.storeAddr}>{store.district}, {store.city}</Text>
-              </View>
-              <View style={styles.typeBadge}>
-                <Text style={styles.typeText}>{store.store_type}</Text>
-              </View>
-            </View>
-          ))}
-        </>
-      )}
-
-      <View style={{ height: 32 }} />
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f8f8" },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  header: { backgroundColor: GOLD, padding: 24, paddingTop: 56, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  greeting: { fontSize: 14, color: "#ffffff99" },
-  userName: { fontSize: 22, fontWeight: "800", color: "#fff", marginTop: 2 },
-  roleBadge: { marginTop: 8, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4, alignSelf: "flex-start" },
-  roleText: { fontSize: 12, fontWeight: "700" },
-  statsRow: { flexDirection: "row", padding: 16, gap: 8 },
-  statCard: { flex: 1, backgroundColor: "#fff", borderRadius: 14, padding: 12, alignItems: "center" },
-  statNum: { fontSize: 22, fontWeight: "800" },
-  statLabel: { fontSize: 10, color: "#888", marginTop: 2 },
-  sectionTitle: { fontSize: 16, fontWeight: "700", color: "#111", paddingHorizontal: 16, marginBottom: 12, marginTop: 4 },
-  menuGrid: { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 12, gap: 10, marginBottom: 24 },
-  menuCard: { width: "47%", backgroundColor: "#fff", borderRadius: 16, padding: 18 },
-  menuIcon: { width: 48, height: 48, borderRadius: 14, alignItems: "center", justifyContent: "center", marginBottom: 12 },
-  menuLabel: { fontSize: 14, fontWeight: "700", color: "#111" },
-  menuSub: { fontSize: 12, color: "#888", marginTop: 2 },
-  storeCard: { flexDirection: "row", alignItems: "center", backgroundColor: "#fff", marginHorizontal: 16, marginBottom: 10, borderRadius: 14, padding: 14, gap: 12 },
-  storeIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: "#FFF8E8", alignItems: "center", justifyContent: "center" },
-  storeInfo: { flex: 1 },
-  storeName: { fontSize: 14, fontWeight: "600", color: "#111" },
-  storeAddr: { fontSize: 12, color: "#888", marginTop: 2 },
-  typeBadge: { backgroundColor: "#FFF8E8", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
-  typeText: { fontSize: 11, color: GOLD, fontWeight: "600" },
+  screen: {
+    flex: 1,
+    backgroundColor: UI.background,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: UI.background,
+  },
+  content: {
+    paddingBottom: 132,
+  },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: UI.background,
+  },
+  welcomeCard: {
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    padding: 14,
+  },
+  heroIdentity: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 12,
+  },
+  logoWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logo: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+  },
+  heroTextWrap: {
+    flex: 1,
+  },
+  heroGreeting: {
+    fontSize: 13,
+    color: "#FFFCE7",
+    marginBottom: 2,
+  },
+  heroName: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#5B5214",
+  },
+  roleBadge: {
+    marginTop: 8,
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 999,
+  },
+  roleText: {
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  notifyButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  },
+  notifyDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#FF4D4F",
+    borderWidth: 2,
+    borderColor: UI.primary,
+    position: "absolute",
+    top: 8,
+    right: 8,
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    minHeight: 50,
+    backgroundColor: "rgba(255,255,255,0.16)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.34)",
+    borderRadius: 18,
+    paddingHorizontal: 16,
+  },
+  searchInput: {
+    flex: 1,
+    color: "#5B5214",
+    fontSize: 14,
+  },
+  section: {
+    paddingHorizontal: 16,
+    marginTop: 18,
+  },
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 14,
+  },
+  statCard: {
+    width: "47.8%",
+    backgroundColor: UI.card,
+    borderRadius: 20,
+    padding: 16,
+    shadowColor: UI.shadow,
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
+  },
+  statIconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 14,
+    backgroundColor: UI.primarySoft,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  statLabel: {
+    fontSize: 13,
+    color: UI.muted,
+    marginBottom: 6,
+  },
+  statValue: {
+    fontSize: 30,
+    lineHeight: 34,
+    fontWeight: "800",
+    color: UI.text,
+  },
+  statChange: {
+    marginTop: 8,
+    fontSize: 13,
+    fontWeight: "700",
+    color: UI.success,
+  },
+  quickCard: {
+    backgroundColor: UI.primaryDark,
+    borderRadius: 20,
+    padding: 16,
+    shadowColor: UI.primaryDark,
+    shadowOpacity: 0.22,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 8,
+  },
+  quickTitle: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    marginBottom: 14,
+  },
+  quickGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  quickAction: {
+    width: "47.8%",
+    minHeight: 96,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.28)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 12,
+    gap: 10,
+  },
+  quickActionLabel: {
+    color: "#5B5214",
+    fontSize: 15,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  noticeCard: {
+    backgroundColor: "#FFFDF6",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#FFE0A8",
+    padding: 16,
+  },
+  noticeHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
+  noticeTitleWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  noticeTitle: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: UI.text,
+  },
+  noticeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: UI.primary,
+  },
+  noticeItem: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    marginBottom: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  noticeItemTitle: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "700",
+    color: UI.text,
+  },
+  noticeItemMeta: {
+    marginTop: 4,
+    fontSize: 12,
+    color: UI.muted,
+  },
+  noticeBadge: {
+    minWidth: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: UI.primarySoft,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 8,
+  },
+  noticeBadgeText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: UI.primaryDark,
+  },
+  noticeEmpty: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 18,
+  },
+  noticeEmptyTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: UI.text,
+  },
+  noticeEmptyText: {
+    marginTop: 6,
+    fontSize: 13,
+    lineHeight: 19,
+    color: UI.muted,
+  },
 });

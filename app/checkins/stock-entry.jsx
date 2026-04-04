@@ -8,7 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { getProducts, createStockEntries, completeCheckin } from "../../src/services/checkinService";
 import AlertBox, { useAlert } from "../../components/AlertBox";
 
-const GOLD = "#C8960C";
+const GOLD = "#E7DA66";
 
 export default function StockEntryScreen() {
     const { check_id, store_name } = useLocalSearchParams();
