@@ -4,7 +4,7 @@ import {
     Modal, Platform,
 } from "react-native";
 
-const GOLD = "#C8960C";
+const GOLD = "#E7DA66";
 
 // ─── Hook dùng trong các screen ───────────────────────────────
 export function useAlert() {

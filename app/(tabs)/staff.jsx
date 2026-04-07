@@ -7,26 +7,16 @@ import {
   RefreshControl,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import AlertBox, { useAlert } from "../../components/AlertBox";
 import TabHero from "../../components/TabHero";
+import SkeletonPulse from "../../components/SkeletonPulse";
 import { getUser } from "../../src/services/authService";
 import { deleteStaff, getStaffList } from "../../src/services/staffService";
-
-const UI = {
-  primary: "#E7DA66",
-  primaryDark: "#C6B83C",
-  primarySoft: "#F6F1B4",
-  background: "#F6F7FB",
-  card: "#FFFFFF",
-  text: "#24324A",
-  muted: "#7B8798",
-  border: "#E9EDF5",
-  success: "#29B36A",
-  danger: "#FF5B5B",
-};
+import { UI } from "../../constants/theme";
 
 const ROLE_STYLE = {
   Admin: { bg: "#F6F1B4", text: "#8A7E18" },
@@ -38,6 +28,8 @@ export default function StaffScreen() {
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [filteredStaff, setFilteredStaff] = useState([]);
+  const [search, setSearch] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
   const { alertConfig, showAlert, hideAlert } = useAlert();
 
@@ -56,6 +48,7 @@ export default function StaffScreen() {
       const result = await getStaffList();
       if (result.success) {
         setStaff(result.data.staff);
+        setFilteredStaff(result.data.staff);
       }
     } finally {
       setLoading(false);
@@ -82,7 +75,19 @@ export default function StaffScreen() {
   };
 
   const canDeactivate = currentUser?.role === "Admin";
-  const canCreate = currentUser?.role === "Admin" || currentUser?.role === "Manager";
+  const canCreate = currentUser?.role === "Admin";
+
+  useEffect(() => {
+    if (!search.trim()) {
+      setFilteredStaff(staff);
+      return;
+    }
+
+    const query = search.toLowerCase();
+    setFilteredStaff(
+      staff.filter((item) => item.full_name?.toLowerCase().includes(query))
+    );
+  }, [search, staff]);
 
   const activeCount = staff.filter((item) => item.is_active).length;
   const inactiveCount = staff.length - activeCount;
@@ -90,7 +95,7 @@ export default function StaffScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={UI.primary} />
+        <SkeletonPulse style={styles.loadingSkeleton} />
       </View>
     );
   }
@@ -102,30 +107,40 @@ export default function StaffScreen() {
       <TabHero
         eyebrow="Team"
         title="Staff"
-        right={canCreate ? (
-          <TouchableOpacity style={styles.heroButton} onPress={() => router.push("/staff/create")}>
-            <Ionicons name="add" size={20} color="#5B5214" />
-          </TouchableOpacity>
-        ) : null}
       >
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{staff.length}</Text>
-            <Text style={styles.statLabel}>Total</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{activeCount}</Text>
-            <Text style={styles.statLabel}>Active</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{inactiveCount}</Text>
-            <Text style={styles.statLabel}>Inactive</Text>
-          </View>
+        <View style={styles.searchBar}>
+          <Ionicons name="search-outline" size={17} color={UI.light.primaryDark} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search staff by name..."
+            placeholderTextColor="#7C859C"
+            value={search}
+            onChangeText={setSearch}
+          />
+          {search !== "" && (
+            <TouchableOpacity onPress={() => setSearch("")}>
+              <Ionicons name="close-circle" size={17} color={UI.light.primaryDark} />
+            </TouchableOpacity>
+          )}
         </View>
+{/*         <View style={styles.statsRow}> */}
+{/*           <View style={styles.statCard}> */}
+{/*             <Text style={styles.statValue}>{staff.length}</Text> */}
+{/*             <Text style={styles.statLabel}>Total</Text> */}
+{/*           </View> */}
+{/*           <View style={styles.statCard}> */}
+{/*             <Text style={styles.statValue}>{activeCount}</Text> */}
+{/*             <Text style={styles.statLabel}>Active</Text> */}
+{/*           </View> */}
+{/*           <View style={styles.statCard}> */}
+{/*             <Text style={styles.statValue}>{inactiveCount}</Text> */}
+{/*             <Text sty       le={styles.statLabel}>Inactive</Text> */}
+{/*           </View> */}
+{/*         </View> */}
       </TabHero>
 
       <FlatList
-        data={staff}
+        data={filteredStaff}
         keyExtractor={(item) => String(item.user_id)}
         contentContainerStyle={styles.listContent}
         refreshControl={
@@ -135,8 +150,8 @@ export default function StaffScreen() {
               setRefreshing(true);
               fetchStaff();
             }}
-            colors={[UI.primary]}
-            tintColor={UI.primary}
+            colors={[UI.light.primary]}
+            tintColor={UI.light.primary}
           />
         }
         renderItem={({ item }) => {
@@ -144,7 +159,7 @@ export default function StaffScreen() {
 
           return (
             <View style={styles.card}>
-              <View style={[styles.avatar, { backgroundColor: item.is_active ? UI.primaryDark : "#C4CBD8" }]}>
+              <View style={[styles.avatar, { backgroundColor: item.is_active ? UI.light.primaryDark : "#C4CBD8" }]}>
                 <Text style={styles.avatarLetter}>{item.full_name?.[0]}</Text>
               </View>
 
@@ -153,7 +168,7 @@ export default function StaffScreen() {
                   <Text style={styles.name}>{item.full_name}</Text>
                   {canDeactivate && item.is_active && (
                     <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item)}>
-                      <Ionicons name="trash-outline" size={16} color={UI.danger} />
+                      <Ionicons name="trash-outline" size={16} color={UI.light.danger} />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -166,7 +181,7 @@ export default function StaffScreen() {
                   </View>
                   {!item.is_active && (
                     <View style={[styles.roleBadge, { backgroundColor: "#FFE8E8" }]}>
-                      <Text style={[styles.roleText, { color: UI.danger }]}>Inactive</Text>
+                      <Text style={[styles.roleText, { color: UI.light.danger }]}>Inactive</Text>
                     </View>
                   )}
                 </View>
@@ -183,10 +198,20 @@ export default function StaffScreen() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <View style={styles.emptyIconWrap}>
-              <Ionicons name="people-outline" size={30} color={UI.primaryDark} />
+              <Ionicons name="people-outline" size={30} color={UI.light.primaryDark} />
             </View>
-            <Text style={styles.emptyTitle}>No staff found</Text>
-            <Text style={styles.emptyText}>Staff accounts will appear here.</Text>
+            <Text style={styles.emptyTitle}>No staff available</Text>
+            <Text style={styles.emptyText}>Invite team members to keep operations humming.</Text>
+            {canCreate ? (
+              <TouchableOpacity
+                style={styles.emptyButton}
+                onPress={() => router.push("/staff/create")}
+              >
+                <Text style={styles.emptyButtonText}>Add Staff Member</Text>
+              </TouchableOpacity>
+            ) : (
+              <Text style={styles.emptyHint}>Ask an admin to onboard new staff.</Text>
+            )}
           </View>
         }
       />
@@ -197,13 +222,18 @@ export default function StaffScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: UI.background,
+    backgroundColor: UI.light.background,
   },
   center: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: UI.background,
+    backgroundColor: UI.light.background,
+  },
+  loadingSkeleton: {
+    width: "70%",
+    height: 26,
+    borderRadius: 14,
   },
   heroButton: {
     width: 42,
@@ -212,6 +242,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.28)",
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    minHeight: 48,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.34)",
+    backgroundColor: "rgba(255,255,255,0.22)",
+    paddingHorizontal: 14,
+    marginTop: 12,
+  },
+  searchInput: {
+    flex: 1,
+    color: UI.light.primaryDark,
+    fontSize: 14,
+    paddingVertical: 0,
   },
   statsRow: {
     flexDirection: "row",
@@ -228,12 +276,12 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: "800",
-    color: "#5B5214",
+    color: UI.light.text,
   },
   statLabel: {
     marginTop: 4,
     fontSize: 12,
-    color: "#FFFCE7",
+    color: UI.light.muted,
   },
   listContent: {
     paddingHorizontal: 16,
@@ -246,17 +294,17 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: "800",
-    color: UI.text,
+    color: UI.light.text,
   },
   sectionSub: {
     marginTop: 4,
     fontSize: 13,
-    color: UI.muted,
+    color: UI.light.muted,
   },
   card: {
     flexDirection: "row",
     gap: 12,
-    backgroundColor: UI.card,
+    backgroundColor: UI.light.card,
     borderRadius: 20,
     padding: 15,
     marginBottom: 12,
@@ -291,12 +339,12 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontWeight: "800",
-    color: UI.text,
+    color: UI.light.text,
   },
   email: {
     marginTop: 5,
     fontSize: 13,
-    color: UI.muted,
+    color: UI.light.muted,
   },
   badgeRow: {
     flexDirection: "row",
@@ -329,7 +377,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 24,
-    backgroundColor: UI.primarySoft,
+    backgroundColor: UI.light.primarySoft,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -337,12 +385,32 @@ const styles = StyleSheet.create({
     marginTop: 14,
     fontSize: 16,
     fontWeight: "800",
-    color: UI.text,
+    color: UI.light.text,
   },
   emptyText: {
     marginTop: 6,
     fontSize: 13,
-    color: UI.muted,
+    color: UI.light.muted,
+    textAlign: "center",
+  },
+  emptyButton: {
+    marginTop: 16,
+    minWidth: "60%",
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: UI.light.primaryDark,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyButtonText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  emptyHint: {
+    marginTop: 12,
+    fontSize: 12,
+    color: UI.light.muted,
     textAlign: "center",
   },
 });

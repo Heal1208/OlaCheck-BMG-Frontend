@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -17,13 +18,14 @@ import AlertBox, { useAlert } from "../../components/AlertBox";
 
 const UI = {
   primary: "#E7DA66",
-  primaryDark: "#C6B83C",
+  primaryDark: "#24324A",
   primarySoft: "#F6F1B4",
   background: "#F6F7FB",
   card: "#FFFFFF",
   text: "#24324A",
-  muted: "#7B8798",
+  muted: "#5A6272",
   border: "#E9EDF5",
+  success: "#1A8A5D",
 };
 
 export default function RecoveryScreen() {
@@ -61,7 +63,7 @@ export default function RecoveryScreen() {
           <Text style={styles.backText}>Return to Sign In</Text>
         </TouchableOpacity>
 
-        <View style={styles.hero}>
+        <LinearGradient colors={["#E7DA66", "#D8B73E"]} style={styles.hero}>
           <View style={styles.logoWrap}>
             <Image
               source={require("../../assets/images/olasun-leaf.png")}
@@ -71,7 +73,7 @@ export default function RecoveryScreen() {
           </View>
           <Text style={styles.heroTitle}>Account Recovery</Text>
           <Text style={styles.heroSub}>We will send a secure access link to your registered email.</Text>
-        </View>
+        </LinearGradient>
 
         <View style={styles.card}>
           <Text style={styles.title}>Reset Access</Text>
@@ -151,12 +153,12 @@ const styles = StyleSheet.create({
     color: UI.text,
   },
   hero: {
-    backgroundColor: UI.primary,
     borderRadius: 28,
-    paddingVertical: 24,
+    paddingVertical: 20,
     paddingHorizontal: 20,
     alignItems: "center",
     marginBottom: 16,
+    overflow: "hidden",
   },
   logoWrap: {
     width: 72,
@@ -175,14 +177,14 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 24,
     fontWeight: "800",
-    color: "#5B5214",
+    color: UI.text,
     textAlign: "center",
   },
   heroSub: {
     marginTop: 6,
     fontSize: 13,
     lineHeight: 19,
-    color: "#FFFCE7",
+    color: UI.muted,
     textAlign: "center",
   },
   card: {
@@ -228,7 +230,7 @@ const styles = StyleSheet.create({
   primaryButton: {
     minHeight: 50,
     borderRadius: 16,
-    backgroundColor: UI.primaryDark,
+    backgroundColor: UI.success,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",

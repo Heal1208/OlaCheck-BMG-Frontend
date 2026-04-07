@@ -3,7 +3,6 @@ import { StatusBar } from "expo-status-bar";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Image,
   ScrollView,
   StyleSheet,
@@ -12,23 +11,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import SkeletonPulse from "../../components/SkeletonPulse";
 import TabHero from "../../components/TabHero";
 import { getUser } from "../../src/services/authService";
 import { getAssignedStores } from "../../src/services/storeService";
-
-const UI = {
-  primary: "#E7DA66",
-  primaryDark: "#C6B83C",
-  primarySoft: "#F6F1B4",
-  background: "#F6F7FB",
-  card: "#FFFFFF",
-  text: "#24324A",
-  muted: "#7B8798",
-  success: "#29B36A",
-  danger: "#FF8A00",
-  border: "#E9EDF5",
-  shadow: "#D9DEE8",
-};
+import { UI } from "../../constants/theme";
 
 const CAN_ACCESS = {
   stores: ["Admin", "Manager", "Staff"],
@@ -38,9 +25,9 @@ const CAN_ACCESS = {
 };
 
 const ROLE_BADGE = {
-  Admin: { bg: "#FFFBE0", text: "#8A7E18", label: "Admin" },
-  Manager: { bg: "#FFFBE0", text: "#8A7E18", label: "Manager" },
-  Staff: { bg: "#FFFBE0", text: "#8A7E18", label: "Staff" },
+  Admin: { bg: "#FFFDF1", text: "#24324A", label: "Admin" },
+  Manager: { bg: "#FFFDF1", text: "#24324A", label: "Manager" },
+  Staff: { bg: "#FFFDF1", text: "#24324A", label: "Staff" },
 };
 
 export default function HomeScreen() {
@@ -62,7 +49,7 @@ export default function HomeScreen() {
     return (
       <View style={styles.center}>
         <StatusBar style="dark" />
-        <ActivityIndicator size="large" color={UI.primary} />
+        <SkeletonPulse style={styles.loadingSkeleton} />
       </View>
     );
   }
@@ -149,7 +136,7 @@ export default function HomeScreen() {
               style={styles.notifyButton}
               onPress={() => (canAccess("alerts") ? router.push("/(tabs)/alerts") : router.push("/(tabs)/profile"))}
             >
-              <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
+            <Ionicons name="notifications-outline" size={22} color={UI.primaryDark} />
               {canAccess("alerts") && <View style={styles.notifyDot} />}
             </TouchableOpacity>
           )}
@@ -209,26 +196,6 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {shouldShowQuickActions && (
-          <View style={styles.section}>
-            <View style={styles.quickCard}>
-              <Text style={styles.quickTitle}>Quick Actions</Text>
-              <View style={styles.quickGrid}>
-                {quickActions.slice(0, 4).map((item) => (
-                  <TouchableOpacity
-                    key={item.label}
-                    style={styles.quickAction}
-                    onPress={() => router.push(item.href)}
-                  >
-                    <Ionicons name={item.icon} size={22} color="#FFFFFF" />
-                    <Text style={styles.quickActionLabel}>{item.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          </View>
-        )}
-
         <View style={styles.section}>
           <View style={styles.noticeCard}>
             <View style={styles.noticeHeader}>
@@ -261,10 +228,19 @@ export default function HomeScreen() {
               ))
             ) : (
               <View style={styles.noticeEmpty}>
+                <View style={styles.noticeEmptyIconWrap}>
+                  <Ionicons name="sparkles-outline" size={36} color={UI.primaryDark} />
+                </View>
                 <Text style={styles.noticeEmptyTitle}>No store data yet</Text>
                 <Text style={styles.noticeEmptyText}>
                   Assigned stores will show up here for quick review.
                 </Text>
+                <TouchableOpacity
+                  style={styles.noticeEmptyButton}
+                  onPress={() => router.push("/(tabs)/stores")}
+                >
+                  <Text style={styles.noticeEmptyButtonText}>Explore Stores</Text>
+                </TouchableOpacity>
               </View>
             )}
           </View>
@@ -277,11 +253,11 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: UI.background,
+    backgroundColor: UI.light.background,
   },
   container: {
     flex: 1,
-    backgroundColor: UI.background,
+    backgroundColor: UI.light.background,
   },
   content: {
     paddingBottom: 132,
@@ -290,7 +266,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: UI.background,
+    backgroundColor: UI.light.background,
+  },
+  loadingSkeleton: {
+    width: "70%",
+    height: 28,
+    borderRadius: 16,
   },
   welcomeCard: {
     borderRadius: 20,
@@ -355,7 +336,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: "#FF4D4F",
     borderWidth: 2,
-    borderColor: UI.primary,
+    borderColor: UI.light.primary,
     position: "absolute",
     top: 8,
     right: 8,
@@ -373,7 +354,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: "#5B5214",
+    color: UI.light.text,
     fontSize: 14,
   },
   section: {
@@ -387,10 +368,10 @@ const styles = StyleSheet.create({
   },
   statCard: {
     width: "47.8%",
-    backgroundColor: UI.card,
+    backgroundColor: UI.light.card,
     borderRadius: 20,
     padding: 16,
-    shadowColor: UI.shadow,
+    shadowColor: UI.light.shadow,
     shadowOpacity: 0.35,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 8 },
@@ -407,7 +388,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 13,
-    color: UI.muted,
+    color: UI.light.muted,
     marginBottom: 6,
   },
   statValue: {
@@ -420,13 +401,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 13,
     fontWeight: "700",
-    color: UI.success,
+    color: UI.light.success,
   },
   quickCard: {
     backgroundColor: UI.primaryDark,
     borderRadius: 20,
     padding: 16,
-    shadowColor: UI.primaryDark,
+    shadowColor: UI.light.primaryDark,
     shadowOpacity: 0.22,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 10 },
@@ -454,7 +435,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   quickActionLabel: {
-    color: "#5B5214",
+    color: UI.text,
     fontSize: 15,
     fontWeight: "700",
     textAlign: "center",
@@ -480,13 +461,13 @@ const styles = StyleSheet.create({
   noticeTitle: {
     fontSize: 24,
     fontWeight: "800",
-    color: UI.text,
+    color: UI.light.text,
   },
   noticeDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: UI.primary,
+    backgroundColor: UI.light.primary,
   },
   noticeItem: {
     backgroundColor: "#FFFFFF",
@@ -503,12 +484,12 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontWeight: "700",
-    color: UI.text,
+    color: UI.light.text,
   },
   noticeItemMeta: {
     marginTop: 4,
     fontSize: 12,
-    color: UI.muted,
+    color: UI.light.muted,
   },
   noticeBadge: {
     minWidth: 28,
@@ -522,22 +503,47 @@ const styles = StyleSheet.create({
   noticeBadgeText: {
     fontSize: 12,
     fontWeight: "800",
-    color: UI.primaryDark,
+    color: UI.light.primaryDark,
   },
   noticeEmpty: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
     padding: 18,
+    alignItems: "center",
+  },
+  noticeEmptyIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#F7E8B6",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
   },
   noticeEmptyTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: UI.text,
+    color: UI.light.text,
   },
   noticeEmptyText: {
     marginTop: 6,
     fontSize: 13,
     lineHeight: 19,
-    color: UI.muted,
+    color: UI.light.muted,
+    textAlign: "center",
+  },
+  noticeEmptyButton: {
+    marginTop: 16,
+    minWidth: "60%",
+    borderRadius: 14,
+    backgroundColor: UI.light.primaryDark,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+  },
+  noticeEmptyButtonText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
 });

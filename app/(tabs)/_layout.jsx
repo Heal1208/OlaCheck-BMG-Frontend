@@ -2,14 +2,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { getAlerts } from "../../src/services/checkinService";
 import { getUser } from "../../src/services/authService";
-
-const UI = {
-  primary: "#E7DA66",
-  primaryDark: "#E7DA66",
-  background: "#FFFFFF",
-  inactive: "#8A94A6",
-};
+import { UI } from "../../constants/theme";
 
 const TABS_BY_ROLE = {
   Admin: ["index", "stores", "alerts", "staff", "profile"],
@@ -25,7 +20,7 @@ const ALL_TABS = [
   { name: "profile", title: "Profile", icon: "person-outline", activeIcon: "person" },
 ];
 
-function TabIcon({ focused, icon, activeIcon, title }) {
+function TabIcon({ focused, icon, activeIcon, title, badge }) {
   return (
     <View style={styles.tabItem}>
       <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
@@ -34,6 +29,7 @@ function TabIcon({ focused, icon, activeIcon, title }) {
           size={20}
           color={focused ? "#FFFFFF" : UI.inactive}
         />
+        {badge && <View style={styles.alertBadge} />}
       </View>
       <Text style={[styles.tabLabel, focused && styles.tabLabelActive]}>{title}</Text>
     </View>
@@ -42,9 +38,27 @@ function TabIcon({ focused, icon, activeIcon, title }) {
 
 export default function TabsLayout() {
   const [role, setRole] = useState(null);
+  const [alertsCount, setAlertsCount] = useState(0);
 
   useEffect(() => {
     getUser().then((u) => setRole(u?.role));
+  }, []);
+
+  useEffect(() => {
+    const loadAlerts = async () => {
+      try {
+        const result = await getAlerts({ status: "open" });
+        if (result.success) {
+          setAlertsCount(result.data.alerts.length);
+        } else {
+          setAlertsCount(0);
+        }
+      } catch {
+        setAlertsCount(0);
+      }
+    };
+
+    loadAlerts();
   }, []);
 
   const allowedTabs = TABS_BY_ROLE[role] || ["index", "profile"];
@@ -70,6 +84,7 @@ export default function TabsLayout() {
                 icon={tab.icon}
                 activeIcon={tab.activeIcon}
                 title={tab.title}
+                badge={tab.name === "alerts" && alertsCount > 0}
               />
             ),
           }}
@@ -85,13 +100,14 @@ const styles = StyleSheet.create({
     left: 14,
     right: 14,
     bottom: 14,
-    height: 76,
     paddingTop: 10,
     paddingBottom: 10,
     paddingHorizontal: 10,
-    backgroundColor: UI.background,
+    backgroundColor: UI.light.card,
     borderTopWidth: 0,
     borderRadius: 24,
+    overflow: "hidden",
+    borderWidth: 0,
     shadowColor: "#C9D2E3",
     shadowOpacity: 0.3,
     shadowRadius: 18,
@@ -110,16 +126,28 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
   },
   iconWrapActive: {
-    backgroundColor: UI.primaryDark,
+    backgroundColor: UI.light.primaryDark,
+    borderRadius: 14,
+    overflow: "hidden",
+  },
+  alertBadge: {
+    position: "absolute",
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: UI.light.alert,
+    top: 6,
+    right: 6,
   },
   tabLabel: {
     fontSize: 11,
     fontWeight: "600",
-    color: UI.inactive,
+    color: UI.light.inactive,
   },
   tabLabelActive: {
-    color: UI.primaryDark,
+    color: UI.light.primaryDark,
   },
 });

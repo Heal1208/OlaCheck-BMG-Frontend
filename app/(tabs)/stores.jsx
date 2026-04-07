@@ -12,21 +12,10 @@ import {
   View,
 } from "react-native";
 import TabHero from "../../components/TabHero";
+import SkeletonPulse from "../../components/SkeletonPulse";
 import { getUser } from "../../src/services/authService";
 import { getAssignedStores } from "../../src/services/storeService";
-
-const UI = {
-  primary: "#E7DA66",
-  primaryDark: "#C6B83C",
-  primarySoft: "#F6F1B4",
-  background: "#F6F7FB",
-  card: "#FFFFFF",
-  text: "#24324A",
-  muted: "#7B8798",
-  border: "#E9EDF5",
-  success: "#29B36A",
-  blue: "#3D8DFF",
-};
+import { UI } from "../../constants/theme";
 
 const TYPE_STYLE = {
   grocery: { bg: "#F6F1B4", text: "#8A7E18" },
@@ -42,13 +31,13 @@ const StatCard = ({ label, value }) => (
 );
 
 const StoreCard = ({ item, canEdit, canCheckin }) => {
-  const typeStyle = TYPE_STYLE[item.store_type] || { bg: "#EEF1F6", text: UI.muted };
+  const typeStyle = TYPE_STYLE[item.store_type] || { bg: "#EEF1F6", text: UI.light.muted };
 
   return (
     <View style={styles.card}>
       <View style={styles.cardTop}>
         <View style={styles.cardIconWrap}>
-          <Ionicons name="storefront-outline" size={20} color={UI.primaryDark} />
+          <Ionicons name="storefront-outline" size={20} color={UI.light.primaryDark} />
         </View>
         <View style={styles.cardInfo}>
           <View style={styles.cardHeaderRow}>
@@ -69,13 +58,13 @@ const StoreCard = ({ item, canEdit, canCheckin }) => {
 
       <View style={styles.metaSection}>
         <View style={styles.metaRow}>
-          <Ionicons name="location-outline" size={14} color={UI.muted} />
+          <Ionicons name="location-outline" size={14} color={UI.light.muted} />
           <Text style={styles.metaText} numberOfLines={1}>
             {item.address}, {item.district}
           </Text>
         </View>
         <View style={styles.metaRow}>
-          <Ionicons name="call-outline" size={14} color={UI.muted} />
+          <Ionicons name="call-outline" size={14} color={UI.light.muted} />
           <Text style={styles.metaText}>{item.phone}</Text>
         </View>
       </View>
@@ -95,20 +84,6 @@ const StoreCard = ({ item, canEdit, canCheckin }) => {
             <Text style={styles.primaryButtonText}>Check In</Text>
           </TouchableOpacity>
         )}
-{/*         {canEdit && ( */}
-{/*           <TouchableOpacity */}
-{/*             style={styles.secondaryButton} */}
-{/*             onPress={() => */}
-{/*               router.push({ */}
-{/*                 pathname: "/stores/edit", */}
-{/*                 params: { store: JSON.stringify(item) }, */}
-{/*               }) */}
-{/*             } */}
-{/*           > */}
-{/*             <Ionicons name="create-outline" size={15} color={UI.primaryDark} /> */}
-{/*             <Text style={styles.secondaryButtonText}>Edit</Text> */}
-{/*           </TouchableOpacity> */}
-{/*         )} */}
       </View>
     </View>
   );
@@ -162,20 +137,20 @@ export default function StoresScreen() {
   };
 
   const role = currentUser?.role;
-  const canEdit = role === "Admin" || role === "Manager";
+  const canEdit = role === "Admin";
   const canCheckin = role === "Admin" || role === "Manager" || role === "Staff";
 
   const typeStats = [
     { label: "Total", value: stores.length },
     { label: "Grocery", value: stores.filter((store) => store.store_type === "grocery").length },
     { label: "Super", value: stores.filter((store) => store.store_type === "supermarket").length },
-    { label: "Agency", value: stores.filter((store) => store.store_type === "agency").length },
+    { label: "Agency",  value: stores.filter((store) => store.store_type === "agency").length },
   ];
 
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={UI.primary} />
+        <SkeletonPulse style={styles.loadingSkeleton} />
       </View>
     );
   }
@@ -185,40 +160,30 @@ export default function StoresScreen() {
       <TabHero
         eyebrow="Operations"
         title="My Stores"
-        right={(
-          <View style={styles.heroActions}>
-            <TouchableOpacity style={styles.heroButton} onPress={() => router.push("/stores/search")}>
-              <Ionicons name="search-outline" size={18} color="#5B5214" />
-            </TouchableOpacity>
-            {canEdit && (
-              <TouchableOpacity style={styles.heroButton} onPress={() => router.push("/stores/create")}>
-                <Ionicons name="add" size={20} color="#5B5214" />
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
       >
         <TouchableOpacity activeOpacity={0.9} style={styles.searchBar} onPress={() => null}>
-          <Ionicons name="search-outline" size={17} color="#FFFCE7" />
+          <Ionicons name="search-outline" size={17} color={UI.light.primaryDark} />
           <TextInput
             style={styles.searchInput}
             placeholder="Filter by store, district, owner..."
-            placeholderTextColor="#FFFCE7"
+            placeholderTextColor="#7C859C"
             value={search}
             onChangeText={setSearch}
+            autoCapitalize="none"
+            autoCorrect={false}
           />
           {search !== "" && (
             <TouchableOpacity onPress={() => setSearch("")}>
-              <Ionicons name="close-circle" size={17} color="#FFFCE7" />
+              <Ionicons name="close-circle" size={17} color={UI.light.primaryDark} />
             </TouchableOpacity>
           )}
         </TouchableOpacity>
 
-        <View style={styles.statsRow}>
-          {typeStats.map((stat) => (
-            <StatCard key={stat.label} label={stat.label} value={stat.value} />
-          ))}
-        </View>
+{/*         <View style={styles.statsRow}> */}
+{/*           {typeStats.map((stat) => ( */}
+{/*             <StatCard key={stat.label} label={stat.label} value={stat.value} /> */}
+{/*           ))} */}
+{/*         </View> */}
       </TabHero>
 
       <FlatList
@@ -236,8 +201,8 @@ export default function StoresScreen() {
               setRefreshing(true);
               fetchStores();
             }}
-            colors={[UI.primary]}
-            tintColor={UI.primary}
+            colors={[UI.light.primary]}
+            tintColor={UI.light.primary}
           />
         }
         ListHeaderComponent={
@@ -251,12 +216,21 @@ export default function StoresScreen() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <View style={styles.emptyIconWrap}>
-              <Ionicons name="storefront-outline" size={32} color={UI.primaryDark} />
+              <Ionicons name="storefront-outline" size={32} color={UI.light.primaryDark} />
             </View>
             <Text style={styles.emptyTitle}>No stores found</Text>
             <Text style={styles.emptyText}>
               {search ? "Try another keyword." : "Assigned stores will appear here."}
             </Text>
+            {canEdit ? (
+              <TouchableOpacity style={styles.emptyButton} onPress={() => router.push("/stores/create")}>
+                <Text style={styles.emptyButtonText}>Add Store</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.emptyButtonOutline} onPress={fetchStores}>
+                <Text style={styles.emptyButtonOutlineText}>Refresh List</Text>
+              </TouchableOpacity>
+            )}
           </View>
         }
       />
@@ -267,13 +241,18 @@ export default function StoresScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: UI.background,
+    backgroundColor: UI.light.background,
   },
   center: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: UI.background,
+    backgroundColor: UI.light.background,
+  },
+  loadingSkeleton: {
+    width: "70%",
+    height: 26,
+    borderRadius: 14,
   },
   heroActions: {
     flexDirection: "row",
@@ -302,7 +281,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 13,
     fontSize: 14,
-    color: "#5B5214",
+    color: UI.light.text,
   },
   statsRow: {
     flexDirection: "row",
@@ -319,12 +298,12 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: "800",
-    color: "#5B5214",
+    color: UI.light.text,
   },
   statLabel: {
     marginTop: 4,
     fontSize: 12,
-    color: "#FFFCE7",
+    color: UI.light.muted,
   },
   listContent: {
     paddingHorizontal: 16,
@@ -337,15 +316,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: "800",
-    color: UI.text,
+    color: UI.light.text,
   },
   sectionSub: {
     marginTop: 4,
     fontSize: 13,
-    color: UI.muted,
+    color: UI.light.muted,
   },
   card: {
-    backgroundColor: UI.card,
+    backgroundColor: UI.light.card,
     borderRadius: 20,
     padding: 15,
     marginBottom: 12,
@@ -364,7 +343,7 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 16,
-    backgroundColor: UI.primarySoft,
+    backgroundColor: UI.light.primarySoft,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -381,12 +360,12 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontWeight: "800",
-    color: UI.text,
+    color: UI.light.text,
   },
   ownerName: {
     marginTop: 4,
     fontSize: 13,
-    color: UI.muted,
+    color: UI.light.muted,
   },
   typeBadge: {
     borderRadius: 999,
@@ -402,7 +381,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     paddingTop: 14,
     borderTopWidth: 1,
-    borderTopColor: UI.border,
+    borderTopColor: UI.light.border,
     gap: 8,
   },
   metaRow: {
@@ -413,7 +392,7 @@ const styles = StyleSheet.create({
   metaText: {
     flex: 1,
     fontSize: 13,
-    color: UI.muted,
+    color: UI.light.muted,
   },
   actionRow: {
     flexDirection: "row",
@@ -424,7 +403,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 42,
     borderRadius: 14,
-    backgroundColor: UI.primaryDark,
+    backgroundColor: UI.light.success,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -439,7 +418,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 42,
     borderRadius: 14,
-    backgroundColor: UI.primarySoft,
+    backgroundColor: UI.light.primarySoft,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -448,7 +427,7 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     fontSize: 13,
     fontWeight: "700",
-    color: UI.primaryDark,
+    color: UI.light.primaryDark,
   },
   empty: {
     alignItems: "center",
@@ -458,7 +437,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 24,
-    backgroundColor: UI.primarySoft,
+    backgroundColor: UI.light.primarySoft,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -466,12 +445,41 @@ const styles = StyleSheet.create({
     marginTop: 14,
     fontSize: 16,
     fontWeight: "800",
-    color: UI.text,
+    color: UI.light.text,
   },
   emptyText: {
     marginTop: 6,
     fontSize: 13,
-    color: UI.muted,
+    color: UI.light.muted,
     textAlign: "center",
+  },
+  emptyButton: {
+    marginTop: 16,
+    minWidth: "60%",
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: UI.light.primaryDark,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyButtonText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  emptyButtonOutline: {
+    marginTop: 16,
+    minWidth: "60%",
+    paddingVertical: 12,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: UI.light.primaryDark,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyButtonOutlineText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: UI.light.primaryDark,
   },
 });

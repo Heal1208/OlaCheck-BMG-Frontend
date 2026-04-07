@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   ActivityIndicator,
   Image,
@@ -18,13 +19,14 @@ import { login, saveSession } from "../../src/services/authService";
 
 const UI = {
   primary: "#E7DA66",
-  primaryDark: "#C6B83C",
+  primaryDark: "#24324A",
   primarySoft: "#F6F1B4",
   background: "#F6F7FB",
   card: "#FFFFFF",
   text: "#24324A",
-  muted: "#7B8798",
+  muted: "#5A6272",
   border: "#E9EDF5",
+  success: "#1A8A5D",
 };
 
 export default function LoginScreen() {
@@ -65,7 +67,7 @@ export default function LoginScreen() {
       <AlertBox config={alertConfig} onHide={hideAlert} />
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <View style={styles.hero}>
+        <LinearGradient colors={["#E7DA66", "#D8B73E"]} style={styles.hero}>
           <View style={styles.logoWrap}>
             <Image
               source={require("../../assets/images/olasun-leaf.png")}
@@ -75,7 +77,7 @@ export default function LoginScreen() {
           </View>
           <Text style={styles.heroTitle}>OlaCheck-BMG</Text>
           <Text style={styles.heroSub}>Smart retail operations, unified in one place.</Text>
-        </View>
+        </LinearGradient>
 
         <View style={styles.card}>
           <Text style={styles.title}>Sign In</Text>
@@ -104,6 +106,8 @@ export default function LoginScreen() {
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPw}
+              autoCapitalize="none"
+              autoCorrect={false}
             />
             <TouchableOpacity onPress={() => setShowPw((value) => !value)}>
               <Ionicons name={showPw ? "eye-outline" : "eye-off-outline"} size={18} color={UI.muted} />
@@ -155,12 +159,12 @@ const styles = StyleSheet.create({
     paddingBottom: 28,
   },
   hero: {
-    backgroundColor: UI.primary,
     borderRadius: 28,
-    paddingVertical: 24,
+    paddingVertical: 20,
     paddingHorizontal: 20,
     alignItems: "center",
     marginBottom: 16,
+    overflow: "hidden",
   },
   logoWrap: {
     width: 72,
@@ -179,13 +183,13 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 24,
     fontWeight: "800",
-    color: "#5B5214",
+    color: UI.text,
   },
   heroSub: {
     marginTop: 6,
     fontSize: 13,
     lineHeight: 19,
-    color: "#FFFCE7",
+    color: UI.muted,
     textAlign: "center",
   },
   card: {
@@ -266,7 +270,7 @@ const styles = StyleSheet.create({
   primaryButton: {
     minHeight: 50,
     borderRadius: 16,
-    backgroundColor: UI.primaryDark,
+    backgroundColor: UI.success,
     alignItems: "center",
     justifyContent: "center",
   },
