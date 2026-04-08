@@ -107,6 +107,11 @@ export default function StaffScreen() {
       <TabHero
         eyebrow="Team"
         title="Staff"
+         right={canCreate ? (
+                   <TouchableOpacity style={styles.heroButton} onPress={() => router.push("/staff/create")}>
+                     <Ionicons name="add" size={20} color="#5B5214" />
+                   </TouchableOpacity>
+                 ) : null}
       >
         <View style={styles.searchBar}>
           <Ionicons name="search-outline" size={17} color={UI.light.primaryDark} />

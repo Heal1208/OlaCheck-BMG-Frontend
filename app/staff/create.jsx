@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     input: { backgroundColor: "#fff", borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: "#111" },
     pwRow: { flexDirection: "row", alignItems: "center", backgroundColor: "#fff", borderRadius: 12, paddingHorizontal: 16 },
     pwInput: { flex: 1, paddingVertical: 14, fontSize: 15, color: "#111" },
-    roleGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    roleGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8,},
     roleBtn: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, backgroundColor: "#fff", borderWidth: 1.5, borderColor: "#e0e0e0" },
     roleBtnActive: { backgroundColor: GOLD, borderColor: GOLD },
     roleBtnText: { fontSize: 13, color: "#666" },

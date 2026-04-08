@@ -96,19 +96,17 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    position: "absolute",
-    left: 14,
-    right: 14,
-    bottom: 14,
+    position: "absolute ",
+    height: 60,
     paddingTop: 10,
     paddingBottom: 10,
     paddingHorizontal: 10,
     backgroundColor: UI.light.card,
     borderTopWidth: 0,
-    borderRadius: 24,
     overflow: "hidden",
     borderWidth: 0,
     shadowColor: "#C9D2E3",
+    backgroundColor: UI.light.tint,
     shadowOpacity: 0.3,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 10 },

@@ -160,6 +160,16 @@ export default function StoresScreen() {
       <TabHero
         eyebrow="Operations"
         title="My Stores"
+        right={(
+          <View style={styles.heroActions}>
+
+            {canEdit && (
+              <TouchableOpacity style={styles.heroButton} onPress={() => router.push("/stores/create")}>
+                <Ionicons name="add" size={20} color="#5B5214" />
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       >
         <TouchableOpacity activeOpacity={0.9} style={styles.searchBar} onPress={() => null}>
           <Ionicons name="search-outline" size={17} color={UI.light.primaryDark} />
