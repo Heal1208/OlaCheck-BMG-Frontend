@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     View, Text, StyleSheet, TextInput, TouchableOpacity,
     ActivityIndicator, ScrollView,
@@ -6,6 +6,7 @@ import {
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { searchStores } from "../../src/services/storeService";
+import { getUser } from "../../src/services/authService";
 
 const GOLD = "#E7DA66";
 const TYPES = ["", "grocery", "supermarket", "agency"];
@@ -18,6 +19,11 @@ export default function StoreSearchScreen() {
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
     const [searched, setSearched] = useState(false);
+    const [userRole, setUserRole] = useState(null);
+
+    useEffect(() => {
+        getUser().then(u => setUserRole(u?.role));
+    }, []);
 
     const handleSearch = async () => {
         const params = {};
@@ -90,21 +96,33 @@ export default function StoreSearchScreen() {
                     <Text style={styles.resultCount}>{results.length} result{results.length !== 1 ? "s" : ""} found</Text>
                 )}
 
-                {!loading && results.map((item) => (
-                    <View key={item.store_id} style={styles.card}>
-                        <View style={styles.iconBox}>
-                            <Ionicons name="storefront-outline" size={20} color={GOLD} />
+                {!loading && results.map((item) => {
+                    const isEditable = userRole === "Admin" || userRole === "Manager";
+                    const Content = (
+                        <View key={item.store_id} style={styles.card}>
+                            <View style={styles.iconBox}>
+                                <Ionicons name="storefront-outline" size={20} color={GOLD} />
+                            </View>
+                            <View style={styles.info}>
+                                <Text style={styles.name} numberOfLines={1}>{item.store_name}</Text>
+                                <Text style={styles.sub}>{item.owner_name} · {item.phone}</Text>
+                                <Text style={styles.addr} numberOfLines={1}>{item.address}, {item.district}, {item.city}</Text>
+                            </View>
+                            <View style={styles.badge}>
+                                <Text style={styles.badgeText}>{item.store_type}</Text>
+                            </View>
                         </View>
-                        <View style={styles.info}>
-                            <Text style={styles.name} numberOfLines={1}>{item.store_name}</Text>
-                            <Text style={styles.sub}>{item.owner_name} · {item.phone}</Text>
-                            <Text style={styles.addr} numberOfLines={1}>{item.address}, {item.district}, {item.city}</Text>
-                        </View>
-                        <View style={styles.badge}>
-                            <Text style={styles.badgeText}>{item.store_type}</Text>
-                        </View>
-                    </View>
-                ))}
+                    );
+
+                    return isEditable ? (
+                        <TouchableOpacity
+                            key={item.store_id}
+                            onPress={() => router.push({ pathname: "/stores/edit", params: { store: JSON.stringify(item) } })}
+                        >
+                            {Content}
+                        </TouchableOpacity>
+                    ) : Content;
+                })}
 
                 {!loading && searched && results.length === 0 && (
                     <View style={styles.empty}>

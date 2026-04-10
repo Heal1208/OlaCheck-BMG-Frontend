@@ -84,7 +84,7 @@ export default function CreateStoreScreen() {
                     ))}
                     <Text style={styles.sectionLabel}>ASSIGNED STAFF</Text>
                     <View style={styles.staffGrid}>
-                        {staffList.filter(s => ["Sales_Executive", "Sales_Admin"].includes(s.role_name)).map((s) => (
+                        {staffList.filter(s => !["Admin", "Manager"].includes(s.role_name)).map((s) => (
                             <TouchableOpacity key={s.user_id} style={[styles.staffBtn, form.assigned_staff_id === s.user_id && styles.staffBtnActive]} onPress={() => set("assigned_staff_id", s.user_id)}>
                                 <Text style={[styles.staffBtnText, form.assigned_staff_id === s.user_id && styles.staffBtnTextActive]}>{s.full_name}</Text>
                                 <Text style={[styles.staffBtnRole, form.assigned_staff_id === s.user_id && { color: "#ffffff99" }]}>{s.role_name.replace("_", " ")}</Text>

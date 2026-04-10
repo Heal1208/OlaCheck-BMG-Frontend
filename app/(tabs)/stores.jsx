@@ -70,6 +70,20 @@ const StoreCard = ({ item, canEdit, canCheckin }) => {
       </View>
 
       <View style={styles.actionRow}>
+        {canEdit && (
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={() =>
+              router.push({
+                pathname: "/stores/edit",
+                params: { store: JSON.stringify(item) },
+              })
+            }
+          >
+            <Ionicons name="pencil-outline" size={15} color={UI.light.primaryDark} />
+            <Text style={styles.secondaryButtonText}>Edit</Text>
+          </TouchableOpacity>
+        )}
         {canCheckin && (
           <TouchableOpacity
             style={styles.primaryButton}
@@ -137,14 +151,14 @@ export default function StoresScreen() {
   };
 
   const role = currentUser?.role;
-  const canEdit = role === "Admin";
+  const canEdit = role === "Admin" || role === "Manager";
   const canCheckin = role === "Admin" || role === "Manager" || role === "Staff";
 
   const typeStats = [
     { label: "Total", value: stores.length },
     { label: "Grocery", value: stores.filter((store) => store.store_type === "grocery").length },
     { label: "Super", value: stores.filter((store) => store.store_type === "supermarket").length },
-    { label: "Agency",  value: stores.filter((store) => store.store_type === "agency").length },
+    { label: "Agency", value: stores.filter((store) => store.store_type === "agency").length },
   ];
 
   if (loading) {
@@ -189,11 +203,11 @@ export default function StoresScreen() {
           )}
         </TouchableOpacity>
 
-{/*         <View style={styles.statsRow}> */}
-{/*           {typeStats.map((stat) => ( */}
-{/*             <StatCard key={stat.label} label={stat.label} value={stat.value} /> */}
-{/*           ))} */}
-{/*         </View> */}
+        {/*         <View style={styles.statsRow}> */}
+        {/*           {typeStats.map((stat) => ( */}
+        {/*             <StatCard key={stat.label} label={stat.label} value={stat.value} /> */}
+        {/*           ))} */}
+        {/*         </View> */}
       </TabHero>
 
       <FlatList
