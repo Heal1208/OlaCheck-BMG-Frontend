@@ -15,6 +15,7 @@ import {
   View,
 } from "react-native";
 import AlertBox, { useAlert } from "../../components/AlertBox";
+import { sendRecoveryRequest } from "../../src/services/statsService";
 
 const UI = {
   primary: "#E7DA66",
@@ -33,23 +34,25 @@ export default function RecoveryScreen() {
   const [loading, setLoading] = useState(false);
   const { alertConfig, showAlert, hideAlert } = useAlert();
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!email.trim()) {
       showAlert("Error", "Please enter your email address.");
       return;
     }
-
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const result = await sendRecoveryRequest(email.trim());
       showAlert(
-        "Recovery Link Sent",
-        `A recovery link has been sent to ${email}. Please check your inbox.`,
-        [{ text: "OK", onPress: () => router.back() }]
+        result.success ? "Đã gửi yêu cầu" : "Lỗi",
+        result.message,
+        [{ text: "OK", onPress: () => result.success && router.back() }]
       );
-    }, 1500);
+    } catch {
+      showAlert("Connection Error", "Cannot connect to server.");
+    } finally {
+      setLoading(false);
+    }
   };
-
   return (
     <KeyboardAvoidingView
       style={styles.container}
