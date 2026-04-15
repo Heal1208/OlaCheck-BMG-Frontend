@@ -9,6 +9,8 @@ import {
     createCheckin, getProducts, createStockEntries,
 } from "../../src/services/checkinService";
 import AlertBox, { useAlert } from "../../components/AlertBox";
+import * as ImagePicker from "expo-image-picker";
+import { Image } from "react-native";
 
 const GOLD = "#E7DA66";
 
@@ -27,6 +29,7 @@ export default function CheckinScreen() {
     const [entries, setEntries] = useState({});
     const [loadingProducts, setLoadingProducts] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [photo, setPhoto] = useState(null);
 
     const { alertConfig, showAlert, hideAlert } = useAlert();
 
@@ -51,11 +54,49 @@ export default function CheckinScreen() {
         setEntries((prev) => ({ ...prev, [productId]: String(Math.max(0, cur + delta)) }));
     };
 
+    const pickImage = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.7,
+            base64: true,
+        });
+
+        if (!result.canceled) {
+            setPhoto(result.assets[0]);
+        }
+    };
+
+    const takePhoto = async () => {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== "granted") {
+            showAlert("Quyền truy cập", "Ứng dụng cần quyền truy cập camera để chụp ảnh.");
+            return;
+        }
+
+        const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.7,
+            base64: true,
+        });
+
+        if (!result.canceled) {
+            setPhoto(result.assets[0]);
+        }
+    };
+
     const handleSubmit = async () => {
         // Validate time
         const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
         if (!timeRegex.test(checkTime)) {
             showAlert("Lỗi", "Thời gian không hợp lệ. Vui lòng nhập theo định dạng HH:MM (ví dụ: 09:30).");
+            return;
+        }
+
+        if (!photo) {
+            showAlert("Thông tin", "Vui lòng chụp ảnh hoặc tải ảnh lên để xác minh check-in.");
             return;
         }
 
@@ -73,6 +114,7 @@ export default function CheckinScreen() {
                 store_id: storeData.store_id,
                 note: note || null,
                 check_time: checkTimeStr,
+                photo_data: photo.base64,
             });
 
             if (!checkinRes.success) {
@@ -204,6 +246,30 @@ export default function CheckinScreen() {
                     numberOfLines={2}
                 />
 
+                {/* Verification Photo */}
+                <Text style={[styles.sectionLabel, { marginTop: 4 }]}>XÁC MINH HÌNH ẢNH</Text>
+                <View style={styles.photoContainer}>
+                    {photo ? (
+                        <View style={styles.photoPreviewWrap}>
+                            <Image source={{ uri: photo.uri }} style={styles.photoPreview} />
+                            <TouchableOpacity style={styles.removePhoto} onPress={() => setPhoto(null)}>
+                                <Ionicons name="close-circle" size={24} color="#ff4444" />
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        <View style={styles.photoButtons}>
+                            <TouchableOpacity style={styles.photoBtn} onPress={takePhoto}>
+                                <Ionicons name="camera" size={28} color={GOLD} />
+                                <Text style={styles.photoBtnText}>Chụp ảnh</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.photoBtn} onPress={pickImage}>
+                                <Ionicons name="images" size={28} color={GOLD} />
+                                <Text style={styles.photoBtnText}>Chọn từ thư viện</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </View>
+
                 {/* Products */}
                 <Text style={[styles.sectionLabel, { marginTop: 4 }]}>NHẬP TỒN KHO</Text>
 
@@ -330,6 +396,27 @@ const styles = StyleSheet.create({
         backgroundColor: "#fff", borderRadius: 14, padding: 14,
         fontSize: 14, color: "#111", minHeight: 72,
         textAlignVertical: "top", marginBottom: 18,
+    },
+
+    photoContainer: {
+        backgroundColor: "#fff", borderRadius: 14, padding: 12, marginBottom: 18,
+    },
+    photoButtons: {
+        flexDirection: "row", gap: 12,
+    },
+    photoBtn: {
+        flex: 1, height: 100, backgroundColor: "#FFF8E8", borderRadius: 12,
+        alignItems: "center", justifyContent: "center", gap: 8,
+        borderWidth: 1, borderColor: "#Feedcf", borderStyle: "dashed",
+    },
+    photoBtnText: { fontSize: 13, color: "#111", fontWeight: "600" },
+    photoPreviewWrap: {
+        width: "100%", height: 200, borderRadius: 12, overflow: "hidden", position: "relative",
+    },
+    photoPreview: { width: "100%", height: "100%", resizeMode: "cover" },
+    removePhoto: {
+        position: "absolute", top: 8, right: 8,
+        backgroundColor: "#fff", borderRadius: 12,
     },
 
     loadingBox: {

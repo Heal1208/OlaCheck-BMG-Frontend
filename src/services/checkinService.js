@@ -6,11 +6,11 @@ const authHeader = async () => ({
     Authorization: `Bearer ${await AsyncStorage.getItem("token")}`,
 });
 
-export const createCheckin = async ({ store_id, note, check_time }) => {
+export const createCheckin = async ({ store_id, note, check_time, photo_data }) => {
     const res = await fetch(`${API_BASE_URL}/checkins`, {
         method: "POST",
         headers: await authHeader(),
-        body: JSON.stringify({ store_id, note, check_time }),
+        body: JSON.stringify({ store_id, note, check_time, photo_data }),
     });
     return res.json();
 };
