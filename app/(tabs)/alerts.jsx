@@ -264,12 +264,14 @@ export default function AlertsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [canResolve, setCanResolve] = useState(false);
+  const [userRole, setUserRole] = useState(null);
   const { alertConfig, showAlert, hideAlert } = useAlert();
 
   useFocusEffect(
     useCallback(() => {
       getUser().then((u) => {
         setCanResolve(["Admin", "Manager"].includes(u?.role));
+        setUserRole(u?.role ?? null);
       });
       loadTab("checkins");
       setTab("checkins");
@@ -330,11 +332,15 @@ export default function AlertsScreen() {
     );
   };
 
-  const TABS = [
+  // Staff chỉ thấy Check-ins & Resolved, không có tab Alerts
+  const ALL_TABS = [
     { label: "Check-ins", value: "checkins", icon: "location-outline" },
     { label: "Alerts", value: "alerts", icon: "warning-outline" },
     { label: "Resolved", value: "resolved", icon: "shield-checkmark-outline" },
   ];
+  const TABS = userRole === "Staff"
+    ? ALL_TABS.filter((t) => t.value !== "alerts")
+    : ALL_TABS;
 
   const listData = tab === "checkins" ? checkins : alerts;
   const badgeCount = listData.length;

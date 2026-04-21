@@ -92,3 +92,12 @@ export const resolveAlert = async (alertId) => {
     });
     return res.json();
 };
+
+export const updateProductThreshold = async (productId, low_stock_threshold) => {
+    const res = await fetch(`${API_BASE_URL}/products/${productId}`, {
+        method: "PUT",
+        headers: await authHeader(),
+        body: JSON.stringify({ low_stock_threshold }),
+    });
+    return res.json();
+};

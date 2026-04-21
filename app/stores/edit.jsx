@@ -7,6 +7,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { updateStore, deleteStore } from "../../src/services/storeService";
 import { getStaffList } from "../../src/services/staffService";
+import { getProducts, updateProductThreshold } from "../../src/services/checkinService";
 import AlertBox, { useAlert } from "../../components/AlertBox";
 
 const GOLD = "#E7DA66";
@@ -22,10 +23,23 @@ export default function EditStoreScreen() {
         city: storeData?.city || "", assigned_staff_id: storeData?.assigned_staff_id || null,
     });
     const [staffList, setStaffList] = useState([]);
+    const [products, setProducts] = useState([]);
+    const [thresholds, setThresholds] = useState({});
     const [loading, setLoading] = useState(false);
     const { alertConfig, showAlert, hideAlert } = useAlert();
 
-    useEffect(() => { getStaffList({ is_active: "1" }).then((r) => { if (r.success) setStaffList(r.data.staff); }); }, []);
+    useEffect(() => {
+        getStaffList({ is_active: "1" }).then((r) => { if (r.success) setStaffList(r.data.staff); });
+        getProducts().then((r) => {
+            if (r.success) {
+                const prods = Array.isArray(r.data) ? r.data : [];
+                setProducts(prods);
+                const init = {};
+                prods.forEach((p) => { init[p.product_id] = String(p.low_stock_threshold ?? 10); });
+                setThresholds(init);
+            }
+        });
+    }, []);
 
     const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
 
@@ -33,9 +47,18 @@ export default function EditStoreScreen() {
         setLoading(true);
         try {
             const r = await updateStore(storeData.store_id, form);
-            if (r.success) {
-                showAlert("Success", "Store updated successfully.", [{ text: "OK", onPress: () => router.back() }]);
-            } else { showAlert("Failed", r.message); }
+            if (!r.success) { showAlert("Failed", r.message); setLoading(false); return; }
+
+            // Save product thresholds
+            const thresholdEntries = Object.entries(thresholds);
+            for (const [pid, val] of thresholdEntries) {
+                const num = parseInt(val);
+                if (!isNaN(num) && num >= 0) {
+                    await updateProductThreshold(parseInt(pid), num);
+                }
+            }
+
+            showAlert("Success", "Store and thresholds updated successfully.", [{ text: "OK", onPress: () => router.back() }]);
         } catch { showAlert("Error", "Cannot connect to server."); }
         finally { setLoading(false); }
     };
@@ -104,6 +127,41 @@ export default function EditStoreScreen() {
                             </TouchableOpacity>
                         ))}
                     </View>
+                    <Text style={styles.sectionLabel}>PRODUCT ALERT THRESHOLDS</Text>
+                    <View style={styles.thresholdList}>
+                        {products.length === 0 ? (
+                            <Text style={styles.noProductText}>No products found.</Text>
+                        ) : products.map((p) => (
+                            <View key={p.product_id} style={styles.thresholdRow}>
+                                <View style={styles.thresholdInfo}>
+                                    <Text style={styles.thresholdName}>{p.product_name}</Text>
+                                    <Text style={styles.thresholdSku}>{p.sku} · {p.unit}</Text>
+                                </View>
+                                <View style={styles.thresholdInputWrap}>
+                                    <TouchableOpacity
+                                        style={styles.thresholdBtn}
+                                        onPress={() => setThresholds((prev) => ({ ...prev, [p.product_id]: String(Math.max(0, (parseInt(prev[p.product_id]) || 0) - 1)) }))}
+                                    >
+                                        <Ionicons name="remove" size={14} color={GOLD} />
+                                    </TouchableOpacity>
+                                    <TextInput
+                                        style={styles.thresholdInput}
+                                        value={thresholds[p.product_id] ?? ""}
+                                        onChangeText={(v) => setThresholds((prev) => ({ ...prev, [p.product_id]: v.replace(/[^0-9]/g, "") }))}
+                                        keyboardType="number-pad"
+                                        placeholder="10"
+                                        placeholderTextColor="#ccc"
+                                    />
+                                    <TouchableOpacity
+                                        style={styles.thresholdBtn}
+                                        onPress={() => setThresholds((prev) => ({ ...prev, [p.product_id]: String((parseInt(prev[p.product_id]) || 0) + 1) }))}
+                                    >
+                                        <Ionicons name="add" size={14} color={GOLD} />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
                     <TouchableOpacity style={[styles.saveBtn, loading && { opacity: 0.7 }]} onPress={handleUpdate} disabled={loading}>
                         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveBtnText}>Save Changes</Text>}
                     </TouchableOpacity>
@@ -133,6 +191,26 @@ const styles = StyleSheet.create({
     staffBtnText: { fontSize: 14, fontWeight: "600", color: "#111" },
     staffBtnTextActive: { color: "#fff" },
     staffBtnRole: { fontSize: 12, color: "#888", marginTop: 2 },
+    thresholdList: { gap: 8, marginBottom: 20 },
+    thresholdRow: {
+        backgroundColor: "#fff", borderRadius: 12, padding: 14, borderWidth: 1.5, borderColor: "#e0e0e0",
+        flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12,
+    },
+    thresholdInfo: { flex: 1 },
+    thresholdName: { fontSize: 13, fontWeight: "700", color: "#111" },
+    thresholdSku: { fontSize: 11, color: "#aaa", marginTop: 2 },
+    thresholdInputWrap: { flexDirection: "row", alignItems: "center", gap: 6 },
+    thresholdBtn: {
+        width: 28, height: 28, borderRadius: 8,
+        backgroundColor: "#FFF8E8", alignItems: "center", justifyContent: "center",
+        borderWidth: 1, borderColor: "#F0E9C2",
+    },
+    thresholdInput: {
+        width: 46, height: 34, backgroundColor: "#f4f4f4",
+        borderRadius: 8, textAlign: "center",
+        fontSize: 14, fontWeight: "700", color: "#111",
+    },
+    noProductText: { fontSize: 13, color: "#aaa", paddingVertical: 8 },
     saveBtn: { backgroundColor: GOLD, borderRadius: 14, paddingVertical: 17, alignItems: "center", marginTop: 8 },
     saveBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
 });

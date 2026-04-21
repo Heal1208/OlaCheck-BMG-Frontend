@@ -152,7 +152,7 @@ export default function StoresScreen() {
 
   const role = currentUser?.role;
   const canEdit = role === "Admin" || role === "Manager";
-  const canCheckin = role === "Admin" || role === "Manager" || role === "Staff";
+  const canCheckin = role === "Staff";
 
   const typeStats = [
     { label: "Total", value: stores.length },
