@@ -17,7 +17,16 @@ export default function CreateStaffScreen() {
     const [showPw, setShowPw] = useState(false);
     const { alertConfig, showAlert, hideAlert } = useAlert();
 
-    useEffect(() => { getRoles().then((r) => { if (r.success) setRoles(r.data); }); }, []);
+    useEffect(() => { 
+        getRoles().then((r) => { 
+            console.log("ROLES RESPONSE:", r);
+            if (r.success) setRoles(r.data); 
+            else alert("Failed to fetch roles: " + r.message);
+        }).catch(e => {
+            console.error(e);
+            alert("Error fetching roles: " + e.message);
+        }); 
+    }, []);
 
     const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
 
@@ -75,6 +84,7 @@ export default function CreateStaffScreen() {
                     <View style={styles.field}>
                         <Text style={styles.label}>Role</Text>
                         <View style={styles.roleGrid}>
+                            <Text>DEBUG: {JSON.stringify(roles)}</Text>
                             {roles.map((r) => (
                                 <TouchableOpacity key={r.role_id} style={[styles.roleBtn, form.role_id === r.role_id && styles.roleBtnActive]} onPress={() => set("role_id", r.role_id)}>
                                     <Text style={[styles.roleBtnText, form.role_id === r.role_id && styles.roleBtnTextActive]}>{r.role_name.replace("_", " ")}</Text>
@@ -101,8 +111,8 @@ const styles = StyleSheet.create({
     input: { backgroundColor: "#fff", borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: "#111" },
     pwRow: { flexDirection: "row", alignItems: "center", backgroundColor: "#fff", borderRadius: 12, paddingHorizontal: 16 },
     pwInput: { flex: 1, paddingVertical: 14, fontSize: 15, color: "#111" },
-    roleGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8,},
-    roleBtn: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, backgroundColor: "#fff", borderWidth: 1.5, borderColor: "#e0e0e0" },
+    roleGrid: { flexDirection: "row", flexWrap: "wrap" },
+    roleBtn: { marginRight: 8, marginBottom: 8, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, backgroundColor: "#fff", borderWidth: 1.5, borderColor: "#e0e0e0" },
     roleBtnActive: { backgroundColor: GOLD, borderColor: GOLD },
     roleBtnText: { fontSize: 13, color: "#666" },
     roleBtnTextActive: { color: "#fff", fontWeight: "600" },

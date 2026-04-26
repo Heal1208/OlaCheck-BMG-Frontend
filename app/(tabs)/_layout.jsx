@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { Tabs, useRouter, useSegments } from "expo-router";
 import { useEffect, useState } from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View, useWindowDimensions, TouchableOpacity, Animated } from "react-native";
 import { UI } from "../../constants/theme";
 import { getUser } from "../../src/services/authService";
 import { getAlerts } from "../../src/services/checkinService";
@@ -60,7 +60,64 @@ const ALL_TABS = [
   },
 ];
 
-// ─── Tab Icon Component ───────────────────────────────────────
+// ─── Desktop Sidebar Component (Collapsible Side Navigation) ────
+function Sidebar({ allowedTabs, alertsCount }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const router = useRouter();
+  const segments = useSegments();
+  
+  // Extract active tab name from URL segments
+  const activeTab = segments.length > 1 ? segments[1] : "index";
+
+  const handleNavigation = (tabName) => {
+    router.navigate(`/(tabs)/${tabName === "index" ? "" : tabName}`);
+  };
+
+  return (
+    <View style={[styles.sidebar, isExpanded ? styles.sidebarExpanded : styles.sidebarCollapsed]}>
+      <View style={[styles.sidebarHeader, !isExpanded && { justifyContent: "center", paddingHorizontal: 0 }]}>
+        <TouchableOpacity style={styles.sidebarToggleBtn} onPress={() => setIsExpanded(!isExpanded)}>
+          <Ionicons name="menu-outline" size={24} color={UI.light.primaryDark} />
+        </TouchableOpacity>
+        {isExpanded && <Text style={styles.sidebarTitle}>OlaCheck</Text>}
+      </View>
+
+      <View style={styles.sidebarContent}>
+        {ALL_TABS.filter((t) => allowedTabs.includes(t.name)).map((tab) => {
+          const focused = activeTab === tab.name;
+          return (
+            <TouchableOpacity
+              key={tab.name}
+              style={[
+                styles.sidebarItem, 
+                focused && styles.sidebarItemActive, 
+                !isExpanded && { justifyContent: "center", paddingHorizontal: 0 }
+              ]}
+              onPress={() => handleNavigation(tab.name)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.sidebarIconWrap, focused && styles.sidebarIconWrapActive]}>
+                <Ionicons
+                  name={focused ? tab.activeIcon : tab.icon}
+                  size={20}
+                  color={focused ? "#FFFFFF" : UI.light.inactive}
+                />
+                {tab.hasBadge && alertsCount > 0 && <View style={styles.alertBadge} />}
+              </View>
+              {isExpanded && (
+                <Text style={[styles.sidebarLabel, focused && styles.sidebarLabelActive]}>
+                  {tab.title}
+                </Text>
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+// ─── Tab Icon Component (Mobile) ──────────────────────────────
 function TabIcon({ focused, icon, activeIcon, title, badge }) {
   return (
     <View style={styles.tabItem}>
@@ -86,13 +143,13 @@ function TabIcon({ focused, icon, activeIcon, title, badge }) {
 export default function TabsLayout() {
   const [role, setRole] = useState(null);
   const [alertsCount, setAlertsCount] = useState(0);
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 1024;
 
-  // Load user role
   useEffect(() => {
     getUser().then((u) => setRole(u?.role ?? null));
   }, []);
 
-  // Load unresolved alert count for badge
   useEffect(() => {
     if (!role) return;
     const loadAlerts = async () => {
@@ -112,51 +169,140 @@ export default function TabsLayout() {
   }, [role]);
 
   const allowedTabs = TABS_BY_ROLE[role] ?? ["index", "profile"];
-
-  // Tính số tab visible để điều chỉnh width
   const visibleCount = ALL_TABS.filter((t) => allowedTabs.includes(t.name)).length;
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarStyle: [
-          styles.tabBar,
-          // Khi có nhiều tab (Admin/Manager có 7 tab) thì giảm padding
-          visibleCount >= 6 && styles.tabBarCompact,
-        ],
-      }}
-    >
-      {ALL_TABS.map((tab) => {
-        const isAllowed = allowedTabs.includes(tab.name);
-        return (
-          <Tabs.Screen
-            key={tab.name}
-            name={tab.name}
-            options={{
-              title: tab.title,
-              // Nếu không được phép thì ẩn khỏi tab bar (href: null)
-              href: isAllowed ? undefined : null,
-              tabBarIcon: ({ focused }) => (
-                <TabIcon
-                  focused={focused}
-                  icon={tab.icon}
-                  activeIcon={tab.activeIcon}
-                  title={tab.title}
-                  badge={tab.hasBadge && alertsCount > 0}
-                />
-              ),
-            }}
-          />
-        );
-      })}
-    </Tabs>
+    <View style={[styles.layoutWrapper, { flexDirection: isDesktop ? "row" : "column" }]}>
+      {isDesktop && <Sidebar allowedTabs={allowedTabs} alertsCount={alertsCount} />}
+      
+      <View style={styles.mainContent}>
+        <Tabs
+          screenOptions={{
+            headerShown: false,
+            tabBarShowLabel: false,
+            // Hide bottom tab bar completely on desktop
+            tabBarStyle: isDesktop
+              ? { display: "none" }
+              : [
+                  styles.tabBar,
+                  visibleCount >= 6 && styles.tabBarCompact,
+                ],
+          }}
+        >
+          {ALL_TABS.map((tab) => {
+            const isAllowed = allowedTabs.includes(tab.name);
+            return (
+              <Tabs.Screen
+                key={tab.name}
+                name={tab.name}
+                options={{
+                  title: tab.title,
+                  href: isAllowed ? undefined : null,
+                  tabBarIcon: ({ focused }) => (
+                    <TabIcon
+                      focused={focused}
+                      icon={tab.icon}
+                      activeIcon={tab.activeIcon}
+                      title={tab.title}
+                      badge={tab.hasBadge && alertsCount > 0}
+                    />
+                  ),
+                }}
+              />
+            );
+          })}
+        </Tabs>
+      </View>
+    </View>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────
 const styles = StyleSheet.create({
+  layoutWrapper: {
+    flex: 1,
+    backgroundColor: UI.light.background,
+  },
+  mainContent: {
+    flex: 1,
+  },
+  
+  // ─── Desktop Collapsible Sidebar Styles ───
+  sidebar: {
+    backgroundColor: "#FFFFFF",
+    borderRightWidth: 1,
+    borderColor: UI.light.border,
+    paddingVertical: 20,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 4, height: 0 },
+    zIndex: 10,
+  },
+  sidebarExpanded: {
+    width: 260,
+  },
+  sidebarCollapsed: {
+    width: 80,
+    alignItems: "center",
+  },
+  sidebarHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    marginBottom: 40,
+    gap: 16,
+  },
+  sidebarToggleBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: "rgba(0,0,0,0.04)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sidebarTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: UI.light.primaryDark,
+  },
+  sidebarContent: {
+    flex: 1,
+    paddingHorizontal: 12,
+    gap: 8,
+  },
+  sidebarItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 16,
+    gap: 16,
+  },
+  sidebarItemActive: {
+    backgroundColor: UI.light.primarySoft,
+  },
+  sidebarIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sidebarIconWrapActive: {
+    backgroundColor: UI.light.primaryDark,
+  },
+  sidebarLabel: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: UI.light.inactive,
+  },
+  sidebarLabelActive: {
+    color: UI.light.primaryDark,
+    fontWeight: "800",
+  },
+
+  // ─── Bottom Tab Styles ───
   tabBar: {
     position: "absolute",
     left: 0,
@@ -176,12 +322,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -4 },
     elevation: 20,
   },
-
-  // Compact mode: khi có >= 6 tab, giảm paddingHorizontal
   tabBarCompact: {
     paddingHorizontal: 2,
   },
-
   tabItem: {
     flex: 1,
     minWidth: 44,
@@ -189,7 +332,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 4,
   },
-
   iconWrap: {
     width: 36,
     height: 36,
@@ -198,11 +340,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     overflow: "hidden",
   },
-
   iconWrapActive: {
     backgroundColor: UI.light.primaryDark,
   },
-
   alertBadge: {
     position: "absolute",
     width: 8,
@@ -214,14 +354,12 @@ const styles = StyleSheet.create({
     top: 5,
     right: 5,
   },
-
   tabLabel: {
     fontSize: 10,
     fontWeight: "600",
     color: UI.light.inactive,
     textAlign: "center",
   },
-
   tabLabelActive: {
     color: UI.light.primaryDark,
     fontWeight: "700",

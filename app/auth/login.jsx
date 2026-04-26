@@ -13,6 +13,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 import AlertBox, { useAlert } from "../../components/AlertBox";
 import { login, saveSession } from "../../src/services/authService";
@@ -36,6 +37,8 @@ export default function LoginScreen() {
   const [keepSignedIn, setKeep] = useState(false);
   const [loading, setLoading] = useState(false);
   const { alertConfig, showAlert, hideAlert } = useAlert();
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 1024;
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -79,67 +82,69 @@ export default function LoginScreen() {
           <Text style={styles.heroSub}>Smart retail operations, unified in one place.</Text>
         </LinearGradient>
 
-        <View style={styles.card}>
-          <Text style={styles.title}>Sign In</Text>
-          <Text style={styles.subtitle}>Access your dashboard and manage daily operations.</Text>
+        <View style={styles.formWrapper}>
+          <View style={styles.card}>
+            <Text style={styles.title}>Sign In</Text>
+            <Text style={styles.subtitle}>Access your dashboard and manage daily operations.</Text>
 
-          <View style={styles.inputWrap}>
-            <Ionicons name="mail-outline" size={18} color={UI.muted} />
-            <TextInput
-              style={styles.input}
-              placeholder="Email Address"
-              placeholderTextColor="#A9B3C3"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
+            <View style={styles.inputWrap}>
+              <Ionicons name="mail-outline" size={18} color={UI.muted} />
+              <TextInput
+                style={styles.input}
+                placeholder="Email Address"
+                placeholderTextColor="#A9B3C3"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
 
-          <View style={styles.inputWrap}>
-            <Ionicons name="lock-closed-outline" size={18} color={UI.muted} />
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              placeholderTextColor="#A9B3C3"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPw}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            <TouchableOpacity onPress={() => setShowPw((value) => !value)}>
-              <Ionicons name={showPw ? "eye-outline" : "eye-off-outline"} size={18} color={UI.muted} />
+            <View style={styles.inputWrap}>
+              <Ionicons name="lock-closed-outline" size={18} color={UI.muted} />
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor="#A9B3C3"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPw}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <TouchableOpacity onPress={() => setShowPw((value) => !value)}>
+                <Ionicons name={showPw ? "eye-outline" : "eye-off-outline"} size={18} color={UI.muted} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.row}>
+              <TouchableOpacity style={styles.checkRow} onPress={() => setKeep((value) => !value)}>
+                <View style={[styles.checkbox, keepSignedIn && styles.checkboxActive]}>
+                  {keepSignedIn && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
+                </View>
+                <Text style={styles.checkLabel}>Keep me signed in</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => router.push("/auth/recovery")}>
+                <Text style={styles.linkText}>Forgot password?</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.primaryButtonText}>Sign In</Text>}
             </TouchableOpacity>
-          </View>
 
-          <View style={styles.row}>
-            <TouchableOpacity style={styles.checkRow} onPress={() => setKeep((value) => !value)}>
-              <View style={[styles.checkbox, keepSignedIn && styles.checkboxActive]}>
-                {keepSignedIn && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
-              </View>
-              <Text style={styles.checkLabel}>Keep me signed in</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => router.push("/auth/recovery")}>
-              <Text style={styles.linkText}>Forgot password?</Text>
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity
-            style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.primaryButtonText}>Sign In</Text>}
-          </TouchableOpacity>
-
-          <View style={styles.noteCard}>
-            <Ionicons name="shield-checkmark-outline" size={18} color={UI.primaryDark} />
-            <Text style={styles.noteText}>
-              Protected by enterprise-grade security. Your data stays encrypted in transit.
-            </Text>
+            <View style={styles.noteCard}>
+              <Ionicons name="shield-checkmark-outline" size={18} color={UI.primaryDark} />
+              <Text style={styles.noteText}>
+                Protected by enterprise-grade security. Your data stays encrypted in transit.
+              </Text>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -155,8 +160,11 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     padding: 18,
-    paddingTop: 28,
+    paddingTop: 48,
     paddingBottom: 28,
+  },
+  formWrapper: {
+    width: "100%",
   },
   hero: {
     borderRadius: 28,

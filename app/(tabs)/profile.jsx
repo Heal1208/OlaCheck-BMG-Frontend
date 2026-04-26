@@ -9,6 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 import AlertBox, { useAlert } from "../../components/AlertBox";
 import SkeletonPulse from "../../components/SkeletonPulse";
@@ -37,6 +38,9 @@ export default function ProfileScreen() {
   const [recentCheckins, setRecentCheckins] = useState([]);
   const [planDetails, setPlanDetails] = useState({ name: "OlaCheck Core", expiresAt: null });
   const [loadingInsights, setLoadingInsights] = useState(false);
+  
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 1024;
 
   useEffect(() => {
     getUser().then(setUser);
@@ -239,144 +243,146 @@ export default function ProfileScreen() {
         </View>
       </TabHero>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Subscription Overview</Text>
-        <View style={styles.planCard}>
-          <View style={styles.planRow}>
-            <Text style={styles.planLabel}>Plan</Text>
-            <Text style={styles.planValue}>{planDetails.name}</Text>
+      <View style={[styles.gridRow, isDesktop && { flexDirection: "row", gap: 24, paddingHorizontal: 16, marginTop: 18 }]}>
+        <View style={[styles.section, isDesktop && { flex: 1, marginTop: 0, paddingHorizontal: 0 }]}>
+          <Text style={styles.sectionTitle}>Subscription Overview</Text>
+          <View style={styles.planCard}>
+            <View style={styles.planRow}>
+              <Text style={styles.planLabel}>Plan</Text>
+              <Text style={styles.planValue}>{planDetails.name}</Text>
+            </View>
+            <View style={styles.planRow}>
+              <Text style={styles.planLabel}>Expires</Text>
+              <Text style={styles.planValue}>{planExpiryLabel}</Text>
+            </View>
+            <Text style={styles.planSub}>
+              Keep your package current to unlock the full suite of analytics and automation.
+            </Text>
           </View>
-          <View style={styles.planRow}>
-            <Text style={styles.planLabel}>Expires</Text>
-            <Text style={styles.planValue}>{planExpiryLabel}</Text>
-          </View>
-          <Text style={styles.planSub}>
-            Keep your package current to unlock the full suite of analytics and automation.
-          </Text>
         </View>
-      </View>
 
-      {user.role === "Admin" && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Enterprise Insights</Text>
-          {loadingInsights ? (
-            <View style={styles.metricRow}>
-              <SkeletonPulse style={[styles.metricSkeleton, { marginRight: 10 }]} />
+        {user.role === "Admin" && (
+          <View style={[styles.section, isDesktop && { flex: 1, marginTop: 0, paddingHorizontal: 0 }]}>
+            <Text style={styles.sectionTitle}>Enterprise Insights</Text>
+            {loadingInsights ? (
+              <View style={styles.metricRow}>
+                <SkeletonPulse style={[styles.metricSkeleton, { marginRight: 10 }]} />
+                <SkeletonPulse style={styles.metricSkeleton} />
+              </View>
+            ) : (
+              <View style={styles.metricRow}>
+                <View style={styles.metricCard}>
+                  <Text style={styles.metricLabel}>Active Stores</Text>
+                  <Text style={styles.metricValue}>{activeStoreCount}</Text>
+                  <Text style={styles.metricNote}>{totalStores} tracked</Text>
+                </View>
+                <View style={styles.metricCard}>
+                  <Text style={styles.metricLabel}>Team Members</Text>
+                  <Text style={styles.metricValue}>{staffMetrics.total}</Text>
+                  <Text style={styles.metricNote}>{staffMetrics.active} active now</Text>
+                </View>
+              </View>
+            )}
+            <View style={styles.adminActions}>
+              <TouchableOpacity style={styles.adminActionButton} onPress={handleSystemConfig}>
+                <Ionicons name="settings-outline" size={18} color={UI.light.primaryDark} />
+                <Text style={styles.adminActionText}>System Config</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.adminActionButton} onPress={handleActivityLog}>
+                <Ionicons name="book-outline" size={18} color={UI.light.primaryDark} />
+                <Text style={styles.adminActionText}>Activity Log</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {user.role === "Manager" && (
+          <View style={[styles.section, isDesktop && { flex: 1, marginTop: 0, paddingHorizontal: 0 }]}>
+            <Text style={styles.sectionTitle}>Coverage Snapshot</Text>
+            {loadingInsights ? (
               <SkeletonPulse style={styles.metricSkeleton} />
+            ) : (
+              <View style={styles.metricRow}>
+                <View style={styles.metricCard}>
+                  <Text style={styles.metricLabel}>Assigned Stores</Text>
+                  <Text style={styles.metricValue}>{totalStores}</Text>
+                  <Text style={styles.metricNote}>Coverage breadth</Text>
+                </View>
+                <View style={styles.metricCard}>
+                  <Text style={styles.metricLabel}>Team Pulse</Text>
+                  <Text style={styles.metricValue}>
+                    {managerOnline} / {managerOffline}
+                  </Text>
+                  <Text style={styles.metricNote}>Online / Offline</Text>
+                </View>
+                <View style={styles.metricCard}>
+                  <Text style={styles.metricLabel}>Reports This Month</Text>
+                  <Text style={styles.metricValue}>{managerMonthlyHandled}</Text>
+                  <Text style={styles.metricNote}>Alerts handled</Text>
+                </View>
+              </View>
+            )}
+            <View style={styles.storeList}>
+              {assignedStores.length === 0 && (
+                <Text style={styles.emptyText}>No stores assigned yet for your scope.</Text>
+              )}
+              {assignedStores.slice(0, 4).map((store) => (
+                <View key={store.store_id} style={styles.storeCard}>
+                  <Text style={styles.storeName}>{store.store_name}</Text>
+                  <Text style={styles.storeMeta}>{store.district}, {store.city}</Text>
+                  <Text style={styles.storeDetail}>
+                    {store.manager_name || store.owner_name || "Manager"} · {store.manager_phone || store.phone || "No phone"}
+                  </Text>
+                </View>
+              ))}
             </View>
-          ) : (
+          </View>
+        )}
+
+        {user.role === "Staff" && (
+          <View style={[styles.section, isDesktop && { flex: 1, marginTop: 0, paddingHorizontal: 0 }]}>
+            <Text style={styles.sectionTitle}>Daily Operations</Text>
             <View style={styles.metricRow}>
               <View style={styles.metricCard}>
-                <Text style={styles.metricLabel}>Active Stores</Text>
-                <Text style={styles.metricValue}>{activeStoreCount}</Text>
-                <Text style={styles.metricNote}>{totalStores} tracked</Text>
+                <Text style={styles.metricLabel}>KPI Completion</Text>
+                <Text style={styles.metricValue}>{kpiScore}%</Text>
+                <Text style={styles.metricNote}>{recentCheckins.length} check-ins recent</Text>
               </View>
               <View style={styles.metricCard}>
-                <Text style={styles.metricLabel}>Team Members</Text>
-                <Text style={styles.metricValue}>{staffMetrics.total}</Text>
-                <Text style={styles.metricNote}>{staffMetrics.active} active now</Text>
-              </View>
-            </View>
-          )}
-          <View style={styles.adminActions}>
-            <TouchableOpacity style={styles.adminActionButton} onPress={handleSystemConfig}>
-              <Ionicons name="settings-outline" size={18} color={UI.light.primaryDark} />
-              <Text style={styles.adminActionText}>System Config</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.adminActionButton} onPress={handleActivityLog}>
-              <Ionicons name="book-outline" size={18} color={UI.light.primaryDark} />
-              <Text style={styles.adminActionText}>Activity Log</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
-      {user.role === "Manager" && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Coverage Snapshot</Text>
-          {loadingInsights ? (
-            <SkeletonPulse style={styles.metricSkeleton} />
-          ) : (
-            <View style={styles.metricRow}>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricLabel}>Assigned Stores</Text>
-                <Text style={styles.metricValue}>{totalStores}</Text>
-                <Text style={styles.metricNote}>Coverage breadth</Text>
-              </View>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricLabel}>Team Pulse</Text>
-                <Text style={styles.metricValue}>
-                  {managerOnline} / {managerOffline}
-                </Text>
-                <Text style={styles.metricNote}>Online / Offline</Text>
-              </View>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricLabel}>Reports This Month</Text>
-                <Text style={styles.metricValue}>{managerMonthlyHandled}</Text>
-                <Text style={styles.metricNote}>Alerts handled</Text>
-              </View>
-            </View>
-          )}
-          <View style={styles.storeList}>
-            {assignedStores.length === 0 && (
-              <Text style={styles.emptyText}>No stores assigned yet for your scope.</Text>
-            )}
-            {assignedStores.slice(0, 4).map((store) => (
-              <View key={store.store_id} style={styles.storeCard}>
-                <Text style={styles.storeName}>{store.store_name}</Text>
-                <Text style={styles.storeMeta}>{store.district}, {store.city}</Text>
-                <Text style={styles.storeDetail}>
-                  {store.manager_name || store.owner_name || "Manager"} · {store.manager_phone || store.phone || "No phone"}
+                <Text style={styles.metricLabel}>Main Store</Text>
+                <Text style={styles.metricValue}>{primaryStore?.store_name ?? "Assigned store"}</Text>
+                <Text style={styles.metricNote}>
+                  {primaryStore ? `${primaryStore.district}, ${primaryStore.city}` : "No store data"}
                 </Text>
               </View>
-            ))}
-          </View>
-        </View>
-      )}
-
-      {user.role === "Staff" && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Daily Operations</Text>
-          <View style={styles.metricRow}>
-            <View style={styles.metricCard}>
-              <Text style={styles.metricLabel}>KPI Completion</Text>
-              <Text style={styles.metricValue}>{kpiScore}%</Text>
-              <Text style={styles.metricNote}>{recentCheckins.length} check-ins recent</Text>
             </View>
-            <View style={styles.metricCard}>
-              <Text style={styles.metricLabel}>Main Store</Text>
-              <Text style={styles.metricValue}>{primaryStore?.store_name ?? "Assigned store"}</Text>
-              <Text style={styles.metricNote}>
-                {primaryStore ? `${primaryStore.district}, ${primaryStore.city}` : "No store data"}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.infoRow}>
-            <View style={styles.infoIcon}>
-              <Ionicons name="call-outline" size={18} color={UI.light.primaryDark} />
-            </View>
-            <View style={[styles.infoBody, { gap: 4 }]}>
-              <Text style={styles.infoLabel}>Store Contact</Text>
-              <Text style={styles.infoValue}>{staffContactName}</Text>
-              <Text style={styles.infoValue}>{staffContactPhone}</Text>
-            </View>
-          </View>
-          <View style={styles.checkinColumn}>
-            <Text style={[styles.sectionTitle, { fontSize: 16 }]}>Check-in History</Text>
-            {recentCheckins.length === 0 && (
-              <Text style={styles.emptyText}>No check-ins recorded yet.</Text>
-            )}
-            {recentCheckins.map((checkin) => (
-              <View key={checkin.checkin_id || checkin.id} style={styles.checkinRow}>
-                <Text style={styles.checkinTime}>
-                  {new Date(checkin.check_time || checkin.created_at || Date.now()).toLocaleString("vi-VN")}
-                </Text>
-                <Text style={styles.checkinNote}>{checkin.note || "Check-in logged"}</Text>
+            <View style={styles.infoRow}>
+              <View style={styles.infoIcon}>
+                <Ionicons name="call-outline" size={18} color={UI.light.primaryDark} />
               </View>
-            ))}
+              <View style={[styles.infoBody, { gap: 4 }]}>
+                <Text style={styles.infoLabel}>Store Contact</Text>
+                <Text style={styles.infoValue}>{staffContactName}</Text>
+                <Text style={styles.infoValue}>{staffContactPhone}</Text>
+              </View>
+            </View>
+            <View style={styles.checkinColumn}>
+              <Text style={[styles.sectionTitle, { fontSize: 16 }]}>Check-in History</Text>
+              {recentCheckins.length === 0 && (
+                <Text style={styles.emptyText}>No check-ins recorded yet.</Text>
+              )}
+              {recentCheckins.map((checkin) => (
+                <View key={checkin.checkin_id || checkin.id} style={styles.checkinRow}>
+                  <Text style={styles.checkinTime}>
+                    {new Date(checkin.check_time || checkin.created_at || Date.now()).toLocaleString("vi-VN")}
+                  </Text>
+                  <Text style={styles.checkinNote}>{checkin.note || "Check-in logged"}</Text>
+                </View>
+              ))}
+            </View>
           </View>
-        </View>
-      )}
+        )}
+      </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Security</Text>
@@ -455,10 +461,12 @@ export default function ProfileScreen() {
         )}
       </View>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Ionicons name="log-out-outline" size={18} color="#FFFFFF" />
-        <Text style={styles.logoutText}>Sign Out</Text>
-      </TouchableOpacity>
+      <View style={styles.signOutWrapper}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={18} color="#FFFFFF" />
+          <Text style={styles.logoutText}>Sign Out</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
@@ -762,9 +770,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#FFFFFF",
   },
+  signOutWrapper: {
+    marginTop: 24,
+    paddingHorizontal: 16,
+    alignItems: "center",
+  },
   logoutButton: {
-    marginTop: 18,
-    marginHorizontal: 16,
+    minWidth: 160,
     minHeight: 50,
     borderRadius: 18,
     backgroundColor: UI.light.danger,
@@ -773,6 +785,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
+    paddingHorizontal: 20,
   },
   logoutText: {
     fontSize: 14,

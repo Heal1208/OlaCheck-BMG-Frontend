@@ -9,6 +9,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 import AlertBox, { useAlert } from "../../components/AlertBox";
 import SkeletonPulse from "../../components/SkeletonPulse";
@@ -80,7 +81,7 @@ function AlertChip({ alert, canResolve, onResolve }) {
   );
 }
 
-function AlertCard({ item, canResolve, onResolve, isResolvedTab }) {
+function AlertCard({ item, canResolve, onResolve, isResolvedTab, cardWidthStyle }) {
   const type = ALERT_TYPE[item.alert_type] || ALERT_TYPE.low_stock;
   const isResolved = isResolvedTab || checkIsResolved(item);
 
@@ -88,71 +89,73 @@ function AlertCard({ item, canResolve, onResolve, isResolvedTab }) {
   const checkId = item.check_id ?? item.checkin_id;
 
   return (
-    <View style={styles.card}>
-      <View style={[styles.cardIconWrap, { backgroundColor: type.bg }]}>
-        <Ionicons name={type.icon} size={22} color={type.color} />
-      </View>
-      <View style={styles.cardBody}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle} numberOfLines={1}>{item.product_name}</Text>
-          <View style={[styles.typeBadge, { backgroundColor: type.bg }]}>
-            <Text style={[styles.typeBadgeText, { color: type.color }]}>{type.label}</Text>
-          </View>
+    <View style={[styles.cardWrapper, cardWidthStyle]}>
+      <View style={styles.card}>
+        <View style={[styles.cardIconWrap, { backgroundColor: type.bg }]}>
+          <Ionicons name={type.icon} size={22} color={type.color} />
         </View>
-
-        <Text style={styles.storeName}>{item.store_name}</Text>
-        {(item.district || item.city) && (
-          <Text style={styles.storeMeta}>{item.district}, {item.city}</Text>
-        )}
-
-        <View style={styles.metaRow}>
-          <View style={styles.metaChip}>
-            <Text style={styles.metaChipText}>Tồn: {item.quantity_at_alert}</Text>
+        <View style={styles.cardBody}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle} numberOfLines={1}>{item.product_name}</Text>
+            <View style={[styles.typeBadge, { backgroundColor: type.bg }]}>
+              <Text style={[styles.typeBadgeText, { color: type.color }]}>{type.label}</Text>
+            </View>
           </View>
-          <View style={[styles.metaChip, { backgroundColor: "#FFF1E2" }]}>
-            <Text style={[styles.metaChipText, { color: "#E07B2E" }]}>
-              Min: {item.low_stock_threshold}
+
+          <Text style={styles.storeName}>{item.store_name}</Text>
+          {(item.district || item.city) && (
+            <Text style={styles.storeMeta}>{item.district}, {item.city}</Text>
+          )}
+
+          <View style={styles.metaRow}>
+            <View style={styles.metaChip}>
+              <Text style={styles.metaChipText}>Tồn: {item.quantity_at_alert}</Text>
+            </View>
+            <View style={[styles.metaChip, { backgroundColor: "#FFF1E2" }]}>
+              <Text style={[styles.metaChipText, { color: "#E07B2E" }]}>
+                Min: {item.low_stock_threshold}
+              </Text>
+            </View>
+            {checkId && (
+              <View style={styles.checkinBadge}>
+                <Ionicons name="location-outline" size={11} color={UI.light.primaryDark} />
+                <Text style={styles.checkinBadgeText}>Check-in #{checkId}</Text>
+              </View>
+            )}
+            <Text style={styles.dateText}>
+              {new Date(item.created_at).toLocaleDateString("vi-VN")}
             </Text>
           </View>
-          {checkId && (
-            <View style={styles.checkinBadge}>
-              <Ionicons name="location-outline" size={11} color={UI.light.primaryDark} />
-              <Text style={styles.checkinBadgeText}>Check-in #{checkId}</Text>
+          <View style={{ flex: 1 }} />
+          {!isResolved && canResolve && (
+            <TouchableOpacity style={styles.resolveBtn} onPress={() => onResolve(item)}>
+              <Ionicons name="checkmark-done-outline" size={16} color="#fff" />
+              <Text style={styles.resolveBtnText}>Resolve Alert</Text>
+            </TouchableOpacity>
+          )}
+
+          {!isResolved && !canResolve && (
+            <View style={styles.openBadge}>
+              <Ionicons name="warning-outline" size={13} color="#E07B2E" />
+              <Text style={styles.openBadgeText}>Awaiting resolution</Text>
             </View>
           )}
-          <Text style={styles.dateText}>
-            {new Date(item.created_at).toLocaleDateString("vi-VN")}
-          </Text>
+
+          {isResolved && (
+            <View style={styles.resolvedBadge}>
+              <Ionicons name="checkmark-circle" size={13} color="#29B36A" />
+              <Text style={styles.resolvedText}>
+                Resolved{item.resolved_by_name ? ` by ${item.resolved_by_name}` : ""}
+              </Text>
+            </View>
+          )}
         </View>
-
-        {!isResolved && canResolve && (
-          <TouchableOpacity style={styles.resolveBtn} onPress={() => onResolve(item)}>
-            <Ionicons name="checkmark-done-outline" size={16} color="#fff" />
-            <Text style={styles.resolveBtnText}>Resolve Alert</Text>
-          </TouchableOpacity>
-        )}
-
-        {!isResolved && !canResolve && (
-          <View style={styles.openBadge}>
-            <Ionicons name="warning-outline" size={13} color="#E07B2E" />
-            <Text style={styles.openBadgeText}>Awaiting resolution</Text>
-          </View>
-        )}
-
-        {isResolved && (
-          <View style={styles.resolvedBadge}>
-            <Ionicons name="checkmark-circle" size={13} color="#29B36A" />
-            <Text style={styles.resolvedText}>
-              Resolved{item.resolved_by_name ? ` by ${item.resolved_by_name}` : ""}
-            </Text>
-          </View>
-        )}
       </View>
     </View>
   );
 }
 
-function CheckInCard({ item, canResolve, onResolve }) {
+function CheckInCard({ item, canResolve, onResolve, cardWidthStyle }) {
   const [expanded, setExpanded] = useState(false);
   const [alerts, setAlerts] = useState([]);
   const [loadingAlerts, setLoadingAlerts] = useState(false);
@@ -187,72 +190,74 @@ function CheckInCard({ item, canResolve, onResolve }) {
   const openAlerts = alerts.filter((a) => !checkIsResolved(a));
 
   return (
-    <View style={styles.checkoutCard}>
-      <TouchableOpacity style={styles.checkoutHeader} onPress={toggle} activeOpacity={0.8}>
-        <View style={styles.checkoutIconWrap}>
-          <Ionicons name="location-outline" size={20} color={UI.light.primaryDark} />
-        </View>
-        <View style={styles.checkoutInfo}>
-          <View style={styles.checkoutTitleRow}>
-            <Text style={styles.checkoutTitle}>Check-in #{id}</Text>
-            {openAlerts.length > 0 && (
-              <View style={styles.alertCountBadge}>
-                <Text style={styles.alertCountText}>{openAlerts.length} alert</Text>
+    <View style={[styles.cardWrapper, cardWidthStyle]}>
+      <View style={styles.checkoutCard}>
+        <TouchableOpacity style={styles.checkoutHeader} onPress={toggle} activeOpacity={0.8}>
+          <View style={styles.checkoutIconWrap}>
+            <Ionicons name="location-outline" size={20} color={UI.light.primaryDark} />
+          </View>
+          <View style={styles.checkoutInfo}>
+            <View style={styles.checkoutTitleRow}>
+              <Text style={styles.checkoutTitle}>Check-in #{id}</Text>
+              {openAlerts.length > 0 && (
+                <View style={styles.alertCountBadge}>
+                  <Text style={styles.alertCountText}>{openAlerts.length} alert</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.checkoutStore} numberOfLines={1}>
+              {item.store_name || "Store"}
+            </Text>
+            <Text style={styles.checkoutTime}>
+              {new Date(item.check_time || item.created_at || Date.now()).toLocaleString("vi-VN")}
+            </Text>
+            {item.note ? (
+              <Text style={styles.checkoutNote} numberOfLines={1}>{item.note}</Text>
+            ) : null}
+          </View>
+          <View style={styles.checkoutRight}>
+            <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
+              <Text style={[styles.statusBadgeText, { color: statusStyle.color }]}>
+                {statusStyle.label}
+              </Text>
+            </View>
+            <Ionicons
+              name={expanded ? "chevron-up-outline" : "chevron-down-outline"}
+              size={16}
+              color={UI.light.muted}
+              style={{ marginTop: 6 }}
+            />
+          </View>
+        </TouchableOpacity>
+
+        {expanded && (
+          <View style={styles.alertsExpanded}>
+            <View style={styles.alertsDivider} />
+            {loadingAlerts ? (
+              <ActivityIndicator size="small" color={UI.light.primaryDark} style={{ marginVertical: 10 }} />
+            ) : alerts.length === 0 ? (
+              <View style={styles.noAlertRow}>
+                <Ionicons name="checkmark-circle-outline" size={15} color="#29B36A" />
+                <Text style={styles.noAlertText}>Không có alert cho check-in này</Text>
+              </View>
+            ) : (
+              <View style={styles.alertChipList}>
+                <Text style={styles.alertChipLabel}>
+                  {alerts.length} alert{alerts.length > 1 ? "s" : ""} liên kết
+                </Text>
+                {alerts.map((a) => (
+                  <AlertChip
+                    key={a.alert_id}
+                    alert={a}
+                    canResolve={canResolve}
+                    onResolve={onResolve}
+                  />
+                ))}
               </View>
             )}
           </View>
-          <Text style={styles.checkoutStore} numberOfLines={1}>
-            {item.store_name || "Store"}
-          </Text>
-          <Text style={styles.checkoutTime}>
-            {new Date(item.check_time || item.created_at || Date.now()).toLocaleString("vi-VN")}
-          </Text>
-          {item.note ? (
-            <Text style={styles.checkoutNote} numberOfLines={1}>{item.note}</Text>
-          ) : null}
-        </View>
-        <View style={styles.checkoutRight}>
-          <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
-            <Text style={[styles.statusBadgeText, { color: statusStyle.color }]}>
-              {statusStyle.label}
-            </Text>
-          </View>
-          <Ionicons
-            name={expanded ? "chevron-up-outline" : "chevron-down-outline"}
-            size={16}
-            color={UI.light.muted}
-            style={{ marginTop: 6 }}
-          />
-        </View>
-      </TouchableOpacity>
-
-      {expanded && (
-        <View style={styles.alertsExpanded}>
-          <View style={styles.alertsDivider} />
-          {loadingAlerts ? (
-            <ActivityIndicator size="small" color={UI.light.primaryDark} style={{ marginVertical: 10 }} />
-          ) : alerts.length === 0 ? (
-            <View style={styles.noAlertRow}>
-              <Ionicons name="checkmark-circle-outline" size={15} color="#29B36A" />
-              <Text style={styles.noAlertText}>Không có alert cho check-in này</Text>
-            </View>
-          ) : (
-            <View style={styles.alertChipList}>
-              <Text style={styles.alertChipLabel}>
-                {alerts.length} alert{alerts.length > 1 ? "s" : ""} liên kết
-              </Text>
-              {alerts.map((a) => (
-                <AlertChip
-                  key={a.alert_id}
-                  alert={a}
-                  canResolve={canResolve}
-                  onResolve={onResolve}
-                />
-              ))}
-            </View>
-          )}
-        </View>
-      )}
+        )}
+      </View>
     </View>
   );
 }
@@ -266,6 +271,8 @@ export default function AlertsScreen() {
   const [canResolve, setCanResolve] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const { alertConfig, showAlert, hideAlert } = useAlert();
+  const { width } = useWindowDimensions();
+  const columns = width >= 1280 ? 3 : width >= 768 ? 2 : 1;
 
   useFocusEffect(
     useCallback(() => {
@@ -344,6 +351,7 @@ export default function AlertsScreen() {
 
   const listData = tab === "checkins" ? checkins : alerts;
   const badgeCount = listData.length;
+  const cardWidthStyle = { flexBasis: columns === 1 ? "100%" : columns === 2 ? "48%" : "32%", flexGrow: 0 };
 
   return (
     <View style={styles.container}>
@@ -381,19 +389,22 @@ export default function AlertsScreen() {
         </View>
       ) : (
         <FlatList
+          key={`cols-${columns}-${tab}`}
+          numColumns={columns}
           data={listData}
-          keyExtractor={(item) =>
+          keyExtractor={(item, index) =>
             tab === "checkins"
-              ? String(item.check_id ?? item.checkin_id ?? item.id)
+              ? `${item.check_id ?? item.checkin_id ?? item.id}-${index}`
               : String(item.alert_id)
           }
           renderItem={({ item }) =>
             tab === "checkins" ? (
-              <CheckInCard item={item} canResolve={canResolve} onResolve={handleResolve} />
+              <CheckInCard item={item} canResolve={canResolve} onResolve={handleResolve} cardWidthStyle={cardWidthStyle} />
             ) : (
-              <AlertCard item={item} canResolve={canResolve} onResolve={handleResolve} isResolvedTab={tab === "resolved"} />
+              <AlertCard item={item} canResolve={canResolve} onResolve={handleResolve} isResolvedTab={tab === "resolved"} cardWidthStyle={cardWidthStyle} />
             )
           }
+          columnWrapperStyle={columns > 1 ? styles.columnWrapper : undefined}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -473,11 +484,14 @@ const styles = StyleSheet.create({
   tabBtnTextActive: { color: UI.light.primaryDark },
 
   listContent: { paddingHorizontal: 16, paddingTop: 18, paddingBottom: 118 },
+  columnWrapper: { gap: 16, alignItems: "flex-start" },
   listHeader: { marginBottom: 14 },
   sectionTitle: { fontSize: 20, fontWeight: "800", color: UI.light.text },
   sectionSub: { marginTop: 4, fontSize: 13, color: UI.light.muted },
 
-  checkoutCard: { backgroundColor: UI.light.card, borderRadius: 20, marginBottom: 12, shadowColor: "#D9DEE8", shadowOpacity: 0.28, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: 5, overflow: "hidden" },
+  cardWrapper: { marginBottom: 12 },
+
+  checkoutCard: { backgroundColor: UI.light.card, borderRadius: 20, shadowColor: "#D9DEE8", shadowOpacity: 0.28, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: 5, overflow: "hidden" },
   checkoutHeader: { flexDirection: "row", alignItems: "flex-start", padding: 15, gap: 12 },
   checkoutIconWrap: { width: 46, height: 46, borderRadius: 16, backgroundColor: UI.light.primarySoft, alignItems: "center", justifyContent: "center" },
   checkoutInfo: { flex: 1, gap: 2 },
@@ -499,9 +513,9 @@ const styles = StyleSheet.create({
   alertChipList: { gap: 2 },
   alertChipLabel: { fontSize: 11, fontWeight: "700", color: UI.light.muted, marginBottom: 6, letterSpacing: 0.5, textTransform: "uppercase" },
 
-  card: { flexDirection: "row", gap: 12, backgroundColor: UI.light.card, borderRadius: 20, padding: 15, marginBottom: 12, shadowColor: "#D9DEE8", shadowOpacity: 0.28, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: 5 },
+  card: { flexDirection: "row", gap: 12, backgroundColor: UI.light.card, borderRadius: 20, padding: 15, shadowColor: "#D9DEE8", shadowOpacity: 0.28, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: 5 },
   cardIconWrap: { width: 46, height: 46, borderRadius: 16, alignItems: "center", justifyContent: "center" },
-  cardBody: { flex: 1 },
+  cardBody: { flex: 1, flexDirection: "column" },
   cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 },
   cardTitle: { flex: 1, fontSize: 15, fontWeight: "800", color: UI.light.text },
   typeBadge: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 },
@@ -509,14 +523,14 @@ const styles = StyleSheet.create({
   storeName: { marginTop: 6, fontSize: 13, fontWeight: "700", color: UI.light.text },
   storeMeta: { marginTop: 2, fontSize: 12, color: UI.light.muted },
 
-  metaRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6, marginTop: 10 },
+  metaRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6, marginTop: 10, marginBottom: 12 },
   metaChip: { backgroundColor: "#F0F2F8", borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
   metaChipText: { fontSize: 12, fontWeight: "600", color: "#555" },
   checkinBadge: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: UI.light.primarySoft, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3 },
   checkinBadgeText: { fontSize: 11, fontWeight: "700", color: UI.light.primaryDark },
   dateText: { marginLeft: "auto", fontSize: 12, color: UI.light.muted },
 
-  resolveBtn: { marginTop: 12, minHeight: 42, borderRadius: 12, backgroundColor: "#29B36A", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
+  resolveBtn: { marginTop: "auto", minHeight: 42, borderRadius: 12, backgroundColor: "#29B36A", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, alignSelf: "flex-end", paddingHorizontal: 24, paddingVertical: 8 },
   resolveBtnText: { fontSize: 13, fontWeight: "700", color: "#fff" },
 
   openBadge: { marginTop: 12, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#FFF1E2", alignSelf: "flex-start", borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
